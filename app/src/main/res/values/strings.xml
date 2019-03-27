@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">IWish</string>
+    <string name="app_name">WISH IT</string>
+    <string name="title_activity_dashboard">DashboardActivity</string>
 </resources>
