@@ -33,7 +33,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     public void clickMe(View view){
         LinearLayout lay = (LinearLayout)view;
-        TextView txt = (TextView)lay.getChildAt(0);
+        TextView txt = (TextView)lay.getChildAt(1);
         Toast.makeText(this, "Button "+txt.getText().toString(),Toast.LENGTH_LONG).show();
     }
 
