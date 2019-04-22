@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">WISH IT</string>
+    <string name="dashboard_name">Your WishList</string>
+    <string name="search_bar">Search Wishlist</string>
 </resources>
