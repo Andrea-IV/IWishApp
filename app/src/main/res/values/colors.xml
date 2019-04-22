@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="blueBackground">#0E1A59</color>
-    <color name="searchBackground">#94354597</color>
-    <color name="blueBackgroundEnd">#1D3ED6</color>
+    <color name="blueBackground">#192153</color>
+    <color name="ghost">#0AFFFFFF</color>
+    <color name="blueBackgroundEnd">#CE371153</color>
     <color name="blueForeground">#1B2976</color>
     <color name="blueEffects">#3153CB</color>
     <color name="roseDelimiter">#D9337B</color>
