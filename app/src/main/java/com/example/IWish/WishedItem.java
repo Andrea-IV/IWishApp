@@ -4,13 +4,13 @@ public class WishedItem {
     private int id;
     private String name;
     private String description;
-    private Float amount;
+    private Double amount;
     private String image;
     private String link;
     private int position;
     private String Category;
 
-    public WishedItem(int id, String name, String description, Float amount, String image, String link, int position, String category) {
+    public WishedItem(int id, String name, String description, Double amount, String image, String link, int position, String category) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -45,11 +45,11 @@ public class WishedItem {
         this.description = description;
     }
 
-    public Float getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(Float amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 

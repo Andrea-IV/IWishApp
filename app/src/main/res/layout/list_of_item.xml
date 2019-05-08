@@ -24,15 +24,15 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/profile_image"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/example"
+            android:id="@+id/expandArrow"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/expanddown"
             app:border_width="2dp"
-            app:border_color="@color/ghost"/>
+            app:border_color="@color/ghostTotally"/>
 
         <TextView
-            android:id="@+id/wishlistText"
+            android:id="@+id/itemTitle"
             android:layout_width="225dp"
             android:layout_height="wrap_content"
             android:padding="20sp"
@@ -41,23 +41,26 @@
             android:textSize="20sp"
             android:textStyle="bold"
             app:fontFamily="@font/comfortaalight" />
+
+        <TextView
+            android:id="@+id/itemId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="end|center_vertical">
-            <ImageView
-                android:id="@+id/locked"
-                android:layout_width="30dp"
-                android:layout_height="match_parent"
-                android:alpha="0.2"
-                app:srcCompat="@drawable/locked"/>
-            <ImageView
-                android:id="@+id/extand"
-                android:layout_width="30dp"
-                android:layout_height="match_parent"
-                android:alpha="0.2"
-                app:srcCompat="@drawable/expand"/>
+            <de.hdodenhof.circleimageview.CircleImageView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/itemImage"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/default_image"
+                app:border_width="2dp"
+                app:border_color="@color/ghost"/>
 
         </LinearLayout>
     </LinearLayout>

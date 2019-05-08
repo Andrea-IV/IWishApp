@@ -1,5 +1,6 @@
 package com.example.IWish;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
@@ -8,7 +9,6 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 public class DashboardActivity extends AppCompatActivity {
 
     Context context;
-    List<RowItem> rowItems;
+    List<RowWishList> rowWishLists;
     ArrayList<WishList> wishes;
 
     @Override
@@ -29,50 +29,51 @@ public class DashboardActivity extends AppCompatActivity {
 
     public void clickMe(View view){
         LinearLayout lay = (LinearLayout)view;
-        TextView txt = (TextView)lay.getChildAt(1);
-        Toast.makeText(this, "Button "+txt.getText().toString(),Toast.LENGTH_LONG).show();
+        String id = ((TextView)lay.getChildAt(2)).getText().toString();
+        String title = ((TextView)lay.getChildAt(1)).getText().toString();
+
+        Intent intent = new Intent(view.getContext(), DetailsActivity.class);
+        Bundle b = new Bundle();
+        b.putInt("ID", Integer.parseInt(id)); //Your id
+        b.putString("TITLE", title);
+        intent.putExtras(b);
+        startActivity(intent);
     }
 
     public void loadWishList(){
         ListView listview = findViewById(R.id.listOfWishlist);
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-                Toast.makeText(context, "An item of the ListView is clicked.", Toast.LENGTH_LONG).show();
-            }
-        });
-
         callWishList();
-        DashboardListAdapter adapter = new DashboardListAdapter(this,R.layout.list_of_wishelist, rowItems);
+        DashboardListAdapter adapter = new DashboardListAdapter(this,R.layout.list_of_wishlist, rowWishLists);
         listview.setAdapter(adapter);
     }
 
     public void callWishList(){
         wishes = new ArrayList<>();
-        rowItems = new ArrayList<>();
+        rowWishLists = new ArrayList<>();
 
         wishes.add(new WishList(1, "Winter Wishes", true));
-        rowItems.add(new RowItem(1, "Winter Wishes", true));
+        rowWishLists.add(new RowWishList(1, 1, "Winter Wishes", true));
 
         wishes.add(new WishList(2, "For The People", true));
-        rowItems.add(new RowItem(2, "For The People", true));
+        rowWishLists.add(new RowWishList(2, 2, "For The People", true));
 
         wishes.add(new WishList(3, "Sharing is Caring", false));
-        rowItems.add(new RowItem(3, "Sharing is Caring", false));
+        rowWishLists.add(new RowWishList(3, 3, "Sharing is Caring", false));
 
         wishes.add(new WishList(4, "Give It To Me!", false));
-        rowItems.add(new RowItem(4, "Give It To Me!", false));
+        rowWishLists.add(new RowWishList(4, 4, "Give It To Me!", false));
 
         wishes.add(new WishList(5, "Winter Wishes 2", true));
-        rowItems.add(new RowItem(5, "Winter Wishes 2", true));
+        rowWishLists.add(new RowWishList(5, 5, "Winter Wishes 2", true));
 
         wishes.add(new WishList(6, "For The People 2", false));
-        rowItems.add(new RowItem(6, "For The People 2", false));
+        rowWishLists.add(new RowWishList(6, 6, "For The People 2", false));
 
         wishes.add(new WishList(7, "Sharing is Caring 2", true));
-        rowItems.add(new RowItem(7, "Sharing is Caring 2", true));
+        rowWishLists.add(new RowWishList(7, 7, "Sharing is Caring 2", true));
 
         wishes.add(new WishList(8, "Give It To Me! 2", false));
-        rowItems.add(new RowItem(8, "Give It To Me! 2", false));
+        rowWishLists.add(new RowWishList(8, 8, "Give It To Me! 2", false));
     }
 
 }
