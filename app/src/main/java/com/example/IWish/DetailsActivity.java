@@ -1,7 +1,10 @@
 package com.example.IWish;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -30,6 +33,12 @@ public class DetailsActivity extends AppCompatActivity {
         callItem(wishListID);
         DetailsListAdapter adapter = new DetailsListAdapter(this,R.layout.list_of_item, wishes);
         listview.setAdapter(adapter);
+    }
+
+    public void goToDetails(View view){
+        Intent intent = new Intent(view.getContext(), ProductActivity.class);
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
     private void callItem(int wishListID){

@@ -27,7 +27,7 @@ public class DashboardActivity extends AppCompatActivity {
         loadWishList();
     }
 
-    public void clickMe(View view){
+    public void goToDetails(View view){
         LinearLayout lay = (LinearLayout)view;
         String id = ((TextView)lay.getChildAt(2)).getText().toString();
         String title = ((TextView)lay.getChildAt(1)).getText().toString();
@@ -38,6 +38,7 @@ public class DashboardActivity extends AppCompatActivity {
         b.putString("TITLE", title);
         intent.putExtras(b);
         startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
     public void loadWishList(){

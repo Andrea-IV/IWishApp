@@ -2,4 +2,10 @@
     <string name="app_name">Wish It</string>
     <string name="dashboard_name">Your WishLists</string>
     <string name="search_bar">Search a Wishlist</string>
+    <string name="default_description">Laink et Terracid, c\'est deux copains un peu bêtes et parfois même méchants qui font de sacrées conneries. Mais y a plus d\'un million de gens sur YouTube qui les trouvent drôles dans des vidéos alors ils ont eu l\'idée de faire une BD. Plein de gens l'ont lue et se sont arrachés les cheveux. Alors ils ont décidé de revenir avec ce deuxième tome !
+Rappeurs, père noël, extraterrestres...Où s'arrêteront-ils ?
+
+Résumé : PUTAIN ON A REFAIT UNE BD, C'EST TROP BIEN </string>
+    <string name="default_price">No price</string>
+    <string name="default_link">Link</string>
 </resources>

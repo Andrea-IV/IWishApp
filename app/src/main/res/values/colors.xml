@@ -5,9 +5,11 @@
     <color name="loginBackground">#0C1029</color>
     <color name="blueBackground">#192153</color>
     <color name="ghost">#0AFFFFFF</color>
+    <color name="foggy">#4AFFFFFF</color>
     <color name="ghostTotally">#00FFFFFF</color>
     <color name="blueBackgroundEnd">#CE371153</color>
     <color name="blueForeground">#1B2976</color>
     <color name="blueEffects">#B4311F61</color>
     <color name="roseDelimiter">#D9337B</color>
+    <color name="foggyNight">#81000000</color>
 </resources>
