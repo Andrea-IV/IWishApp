@@ -44,6 +44,7 @@
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="70dp"
+            android:focusableInTouchMode="true"
             android:background="@color/ghost">
 
             <ImageView

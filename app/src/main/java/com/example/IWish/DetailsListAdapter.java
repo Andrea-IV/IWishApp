@@ -9,12 +9,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.IWish.Model.Item;
+
 import java.util.List;
 
-public class DetailsListAdapter extends ArrayAdapter<WishedItem> {
+public class DetailsListAdapter extends ArrayAdapter<Item> {
     private Context context;
 
-    public DetailsListAdapter(Context context, int vg, List<WishedItem> rowItemList){
+    public DetailsListAdapter(Context context, int vg, List<Item> rowItemList){
         super(context,vg, rowItemList);
         this.context = context;
     }
@@ -27,7 +29,7 @@ public class DetailsListAdapter extends ArrayAdapter<WishedItem> {
 
     public View getView(int position, View convertView, ViewGroup parent) {
         DetailsListAdapter.ViewHolder holder = null;
-        WishedItem wishedItem = getItem(position);
+        Item wishedItem = getItem(position);
 
         LayoutInflater mInflater = (LayoutInflater) context
                 .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
@@ -42,8 +44,8 @@ public class DetailsListAdapter extends ArrayAdapter<WishedItem> {
             holder = (DetailsListAdapter.ViewHolder) convertView.getTag();
         }
 
-        holder.titleView.setText(wishedItem.getName());
-        holder.idView.setText(String.valueOf(wishedItem.getId()));
+        holder.titleView.setText(wishedItem.name);
+        holder.idView.setText(String.valueOf(wishedItem.id));
 
         return convertView;
     }

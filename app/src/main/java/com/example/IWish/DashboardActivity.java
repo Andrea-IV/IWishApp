@@ -5,10 +5,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.example.IWish.Model.Wishlist;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     Context context;
     List<RowWishList> rowWishLists;
-    ArrayList<WishList> wishes;
+    ArrayList<Wishlist> wishes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +28,11 @@ public class DashboardActivity extends AppCompatActivity {
         loadWishList();
     }
 
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
+
     public void goToDetails(View view){
         LinearLayout lay = (LinearLayout)view;
         String id = ((TextView)lay.getChildAt(2)).getText().toString();
@@ -34,9 +40,10 @@ public class DashboardActivity extends AppCompatActivity {
 
         Intent intent = new Intent(view.getContext(), DetailsActivity.class);
         Bundle b = new Bundle();
-        b.putInt("ID", Integer.parseInt(id)); //Your id
+        b.putInt("ID", Integer.parseInt(id));
         b.putString("TITLE", title);
         intent.putExtras(b);
+
         startActivity(intent);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
@@ -51,8 +58,8 @@ public class DashboardActivity extends AppCompatActivity {
     public void callWishList(){
         wishes = new ArrayList<>();
         rowWishLists = new ArrayList<>();
-
-        wishes.add(new WishList(1, "Winter Wishes", true));
+        /*
+        wishes.add(new Wishlist(1, "Winter Wishes", true));
         rowWishLists.add(new RowWishList(1, 1, "Winter Wishes", true));
 
         wishes.add(new WishList(2, "For The People", true));
@@ -75,6 +82,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         wishes.add(new WishList(8, "Give It To Me! 2", false));
         rowWishLists.add(new RowWishList(8, 8, "Give It To Me! 2", false));
+        */
     }
 
 }
