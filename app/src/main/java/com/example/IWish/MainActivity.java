@@ -4,13 +4,14 @@ import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.example.IWish.api.AuthenticationApi;
 import com.example.IWish.api.LoginResponse;
+import com.example.IWish.api.UserApi;
+import com.example.IWish.api.UserResponse;
 
 import org.json.JSONException;
 
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
 
         View createButton = findViewById(R.id.createButton);
         createButton.setVisibility(View.INVISIBLE);
+
+        View returnButton = findViewById(R.id.returnButton);
+        returnButton.setVisibility(View.INVISIBLE);
     }
 
     public void showLoginInput(View view) {
@@ -61,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
 
         View loginAction = findViewById(R.id.loginButton);
         loginAction.setVisibility(View.VISIBLE);
+
+        View returnButton = findViewById(R.id.returnButton);
+        returnButton.setVisibility(View.VISIBLE);
 
         ValueAnimator fadeOut = ValueAnimator.ofFloat(1f, 0f);
         fadeOut.setDuration(500);
@@ -81,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.emailInput).setAlpha(alpha);
                 findViewById(R.id.passwordInput).setAlpha(alpha);
                 findViewById(R.id.loginButton).setAlpha(alpha);
+                findViewById(R.id.returnButton).setAlpha(alpha);
             }
         });
         fadeOut.start();
@@ -114,6 +122,9 @@ public class MainActivity extends AppCompatActivity {
         View createButton = findViewById(R.id.createButton);
         createButton.setVisibility(View.VISIBLE);
 
+        View returnButton = findViewById(R.id.returnButton);
+        returnButton.setVisibility(View.VISIBLE);
+
         ValueAnimator fadeOut = ValueAnimator.ofFloat(1f, 0f);
         fadeOut.setDuration(500);
         fadeOut.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -137,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.FirstName).setAlpha(alpha);
                 findViewById(R.id.LastName).setAlpha(alpha);
                 findViewById(R.id.createButton).setAlpha(alpha);
+                findViewById(R.id.returnButton).setAlpha(alpha);
             }
         });
         fadeOut.start();
@@ -147,6 +159,76 @@ public class MainActivity extends AppCompatActivity {
 
         View createShow = findViewById(R.id.createShow);
         createShow.setVisibility(View.INVISIBLE);
+    }
+
+    public void returnMainMenu(View view){
+
+        View loginShow = findViewById(R.id.loginShow);
+        loginShow.setVisibility(View.VISIBLE);
+
+        View createShow = findViewById(R.id.createShow);
+        createShow.setVisibility(View.VISIBLE);
+
+        ValueAnimator fadeOut = ValueAnimator.ofFloat(1f, 0f);
+        fadeOut.setDuration(500);
+        fadeOut.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float alpha = (float) animation.getAnimatedValue();
+                findViewById(R.id.loginButton).setAlpha(alpha);
+                findViewById(R.id.emailInput).setAlpha(alpha);
+                findViewById(R.id.passwordInput).setAlpha(alpha);
+                findViewById(R.id.emailInputCreate).setAlpha(alpha);
+                findViewById(R.id.passwordInputCreate).setAlpha(alpha);
+                findViewById(R.id.passwordConfirmInputCreate).setAlpha(alpha);
+                findViewById(R.id.FirstName).setAlpha(alpha);
+                findViewById(R.id.LastName).setAlpha(alpha);
+                findViewById(R.id.createButton).setAlpha(alpha);
+                findViewById(R.id.returnButton).setAlpha(alpha);
+            }
+        });
+        ValueAnimator fadeIn = ValueAnimator.ofFloat(0f, 1f);
+        fadeIn.setDuration(500);
+        fadeIn.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float alpha = (float) animation.getAnimatedValue();
+                findViewById(R.id.loginShow).setAlpha(alpha);
+                findViewById(R.id.createShow).setAlpha(alpha);
+            }
+        });
+        fadeOut.start();
+        fadeIn.start();
+
+        View loginAction = findViewById(R.id.loginButton);
+        loginAction.setVisibility(View.INVISIBLE);
+
+        View emailInput = findViewById(R.id.emailInput);
+        emailInput.setVisibility(View.INVISIBLE);
+
+        View passwordInput = findViewById(R.id.passwordInput);
+        passwordInput.setVisibility(View.INVISIBLE);
+
+        View emailInputCreate = findViewById(R.id.emailInputCreate);
+        emailInputCreate.setVisibility(View.INVISIBLE);
+
+        View passwordInputCreate = findViewById(R.id.passwordInputCreate);
+        passwordInputCreate.setVisibility(View.INVISIBLE);
+
+        View passwordConfirmInputCreate = findViewById(R.id.passwordConfirmInputCreate);
+        passwordConfirmInputCreate.setVisibility(View.INVISIBLE);
+
+        View FirstName = findViewById(R.id.FirstName);
+        FirstName.setVisibility(View.INVISIBLE);
+
+        View LastName = findViewById(R.id.LastName);
+        LastName.setVisibility(View.INVISIBLE);
+
+        View createButton = findViewById(R.id.createButton);
+        createButton.setVisibility(View.INVISIBLE);
+
+        View returnButton = findViewById(R.id.returnButton);
+        returnButton.setVisibility(View.INVISIBLE);
     }
 
     public void createAccount(View view){
@@ -163,12 +245,32 @@ public class MainActivity extends AppCompatActivity {
         if(!password.equals(passwordConfirm)){
             ((TextView)findViewById(R.id.errorText)).setText(R.string.password_not_equal);
         }else{
-            tryCreateAccount(email, password, passwordConfirm, firstName, lastName);
+            tryCreateAccount(email, password, firstName, lastName);
         }
     }
 
-    public void tryCreateAccount(String email, String password, String passwordConfirm, String firstName, String lastName){
-
+    public void tryCreateAccount(String email, String password, String firstName, String lastName){
+        UserApi userApi = new UserApi();
+        try {
+            UserResponse res = userApi.createUser(email, password, firstName, lastName);
+            Intent intent = new Intent(this, DashboardActivity.class);
+            if(res.user != null){
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }else{
+                ((TextView)findViewById(R.id.errorText)).setText(R.string.default_error_creation);
+                View loadingPanel = findViewById(R.id.loadingPanel);
+                loadingPanel.setVisibility(View.INVISIBLE);
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void toDashboard(View view) {
@@ -185,7 +287,6 @@ public class MainActivity extends AppCompatActivity {
         AuthenticationApi authApi = new AuthenticationApi();
         try {
             LoginResponse res = authApi.login(login, password);
-            Log.i("LOGIN", res.toString());
             Intent intent = new Intent(this, DashboardActivity.class);
             if(res.message.equals("Login Succesful")){
                 startActivity(intent);
