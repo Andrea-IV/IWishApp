@@ -14,8 +14,8 @@ public class Wishlist extends Model {
     public List<Item> items;
     public PrizePool prizePool;
     public long prizePoolId;
-    public User owner;
-    public long ownerId;
+    public User user;
+    public long owner;
     public List<User> participants;
 
     public Wishlist() {
@@ -29,14 +29,31 @@ public class Wishlist extends Model {
             this.name = (String) (json.get("name"));
             this.isPublic = (boolean) (json.get("isPublic"));
 
-            this.prizePoolId = (int) (json.get("prizePoolId"));
-            this.ownerId = (int) (json.get("ownerId"));
+            if(json.has("prizePoolId")){
+                this.prizePoolId = (int) (json.get("prizePoolId"));
+            }
+            if(json.has("owner")){
+                try {
+                    owner = Integer.parseInt(json.get("owner").toString());
+                } catch(NumberFormatException e) {
+                    this.user = new User((JSONObject) json.get("owner"), false);
+                    this.owner = user.id;
+                }
+            }
 
-            JSONObject prizePoolJson = (JSONObject) (json.get("prizePool"));
-            this.prizePool = new PrizePool(prizePoolJson, false);
+            if(json.has("ownerId")){
+                this.owner = (int)json.get("ownerId");
+             }
 
-            JSONObject ownerJson = (JSONObject) (json.get("owner"));
-            this.owner = new User(ownerJson, false);
+            /*if(json.has("prizePool")){
+                JSONObject prizePoolJson = (JSONObject) (json.get("prizePool"));
+                this.prizePool = new PrizePool(prizePoolJson, false);
+            }*/
+
+            //if(json.has("owner")){
+                //JSONObject ownerJson = (JSONObject) (json.get("owner"));
+                //this.owner = new User(ownerJson, false);
+            //}
 
             if ( includeRelations ) {
                 JSONArray itemsJson = (JSONArray) (json.get("items"));
@@ -73,7 +90,7 @@ public class Wishlist extends Model {
         this.prizePool = other.prizePool;
         this.prizePoolId = other.prizePoolId;
         this.owner = other.owner;
-        this.ownerId = other.ownerId;
+        this.user = other.user;
 
         this.participants = new ArrayList<>(other.participants.size());
         for ( User participant : other.participants )
@@ -94,5 +111,18 @@ public class Wishlist extends Model {
                                 .put("model", "User")
                         )
                 );
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\":" + id +
+                ", \"name\":\"" + name + '\"' +
+                ", \"isPublic\":" + isPublic +
+                ", \"owner\":" + owner +
+                ", \"user\":" + user +
+                ", \"createdAt\":" + createdAt +
+                ", \"updatedAt\":" + updatedAt +
+                '}';
     }
 }

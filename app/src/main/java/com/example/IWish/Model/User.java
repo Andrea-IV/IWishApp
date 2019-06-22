@@ -132,20 +132,35 @@ public class User extends Model {
             );
     }
 
+    public String adaptToJson(List<?> objects){
+        String result = "[";
+
+        for(Object object : objects){
+            result += object.toString();
+            result += ",";
+        }
+        if(result.length() > 1){
+            result = result.substring(0, result.length() - 1);
+        }
+        result += "]";
+
+        return result;
+    }
+
     @Override
     public String toString() {
-        return "User{" +
-                "email='" + email + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", categories=" + categories +
-                ", managedPrizePools=" + managedPrizePools +
-                ", donations=" + donations +
-                ", wishlists=" + wishlists +
-                ", concernedWishlists=" + concernedWishlists +
-                ", id=" + id +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
+        return "{" +
+                "\"email\":\"" + email + '\"' +
+                ", \"firstName\":\"" + firstName + '\"' +
+                ", \"lastName\":\"" + lastName + '\"' +
+                ", \"categories\":" + adaptToJson(categories) +
+                ", \"managedPrizePools\":" + adaptToJson(managedPrizePools) +
+                ", \"donations\":" + adaptToJson(donations) +
+                ", \"wishlists\":" + adaptToJson(wishlists) +
+                ", \"concernedWishlists\":" + adaptToJson(concernedWishlists) +
+                ", \"id\":" + id +
+                ", \"createdAt\":" + createdAt +
+                ", \"updatedAt\":" + updatedAt +
                 '}';
     }
 }

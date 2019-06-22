@@ -4,10 +4,12 @@ import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
+import com.example.IWish.Model.User;
 import com.example.IWish.api.AuthenticationApi;
 import com.example.IWish.api.LoginResponse;
 import com.example.IWish.api.UserApi;
@@ -255,6 +257,11 @@ public class MainActivity extends AppCompatActivity {
             UserResponse res = userApi.createUser(email, password, firstName, lastName);
             Intent intent = new Intent(this, DashboardActivity.class);
             if(res.user != null){
+                User user = userApi.findById(res.user.id);
+                Bundle bundle = new Bundle();
+                bundle.putString("USER", user.toString());
+                intent.putExtras(bundle);
+
                 startActivity(intent);
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }else{
@@ -288,7 +295,11 @@ public class MainActivity extends AppCompatActivity {
         try {
             LoginResponse res = authApi.login(login, password);
             Intent intent = new Intent(this, DashboardActivity.class);
-            if(res.message.equals("Login Succesful")){
+            if(res.status == 200){
+                Bundle bundle = new Bundle();
+                bundle.putString("USER", res.user.toString());
+                intent.putExtras(bundle);
+
                 startActivity(intent);
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }else{

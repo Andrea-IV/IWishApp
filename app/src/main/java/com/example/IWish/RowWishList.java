@@ -1,19 +1,24 @@
 package com.example.IWish;
 
+import com.example.IWish.Model.Wishlist;
+
 public class RowWishList {
-    private int id;
+    private long id;
     private int imageId;
     private String title;
     private boolean isPublic;
+    private Wishlist wishlist;
 
-    public RowWishList(int id, int imageId, String title, boolean isPublic) {
-        this.id = id;
-        this.imageId = imageId;
-        this.title = title;
-        this.isPublic = isPublic;
+
+    public RowWishList(Wishlist wishlist) {
+        this.id = wishlist.id;
+        this.imageId = 1;
+        this.title = wishlist.name;
+        this.isPublic = wishlist.isPublic;
     }
 
-    public int getId() {
+    public Wishlist getWishlist(){ return wishlist; }
+    public long getId() {
         return id;
     }
     public void setId(int id) {

@@ -1,12 +1,17 @@
 package com.example.IWish.api;
 
+import android.util.Log;
+
+import com.example.IWish.Model.User;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class LoginResponse {
     public int status;
     public String message;
-    public UserLoginResponse user;
+    public User user;
 
     public LoginResponse(JSONObject json) {
         try {
@@ -17,7 +22,13 @@ public class LoginResponse {
                 this.user = null;
             }
             else {
-                this.user = new UserLoginResponse((JSONObject) userResponse);
+                UserApi userApi = new UserApi();
+                try{
+                    JSONArray userFound = userApi.findsUser(String.valueOf((int)((JSONObject) userResponse).get("id")), "", "", "");
+                    this.user = new User(userFound.getJSONObject(0));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -33,7 +44,7 @@ public class LoginResponse {
                 '}';
     }
 
-    private class UserLoginResponse {
+    public class UserLoginResponse {
         private String email;
         private long id;
         private String token;
@@ -47,6 +58,8 @@ public class LoginResponse {
                 e.printStackTrace();
             }
         }
+
+
 
         @Override
         public String toString() {
