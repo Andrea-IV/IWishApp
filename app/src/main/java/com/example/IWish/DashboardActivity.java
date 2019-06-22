@@ -1,13 +1,17 @@
 package com.example.IWish;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -56,33 +60,36 @@ public class DashboardActivity extends AppCompatActivity {
         moveTaskToBack(true);
     }
 
-    public void goToDetails(View view){
-        LinearLayout lay = (LinearLayout)view;
-        String id = ((TextView)lay.getChildAt(2)).getText().toString();
-        String title = ((TextView)lay.getChildAt(1)).getText().toString();
-
-        Intent intent = new Intent(view.getContext(), DetailsActivity.class);
-        Bundle b = new Bundle();
-        b.putInt("ID", Integer.parseInt(id));
-        b.putString("TITLE", title);
-        intent.putExtras(b);
-
-        startActivity(intent);
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-    }
-
     public void loadWishList(){
         ListView listview = findViewById(R.id.listOfWishlist);
         displayWishList();
         DashboardListAdapter adapter = new DashboardListAdapter(this,R.layout.list_of_wishlist, rowWishLists);
         listview.setAdapter(adapter);
+
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                WishlistApi wishlistApi = new WishlistApi();
+                Wishlist wishlist = rowWishLists.get(position).getWishlist();
+
+                Intent intent = new Intent(view.getContext(), DetailsActivity.class);
+                Bundle b = new Bundle();
+                b.putString("TITLE", wishlist.name);
+                b.putString("WISHLIST", wishlist.toString());
+                b.putString("USER", user.toString());
+                intent.putExtras(b);
+
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }
+        });
     }
 
     public void showCreateWishlist(View view){
         view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        final View popupView = inflater.inflate(R.layout.activity_create_wishlist, null);
+        final View popupView = inflater.inflate(R.layout.create_wishlist, null);
         popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
 
         // create the popup window
@@ -135,26 +142,6 @@ public class DashboardActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        /*try {
-            WishlistResponse res = userApi.createWishlist(wishlistName);
-            Intent intent = new Intent(this, DetailsActivity.class);
-            if(res.user != null){
-                startActivity(intent);
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            }else{
-                ((TextView)findViewById(R.id.errorText)).setText(R.string.default_error_creation);
-                View loadingPanel = findViewById(R.id.loadingPanel);
-                loadingPanel.setVisibility(View.INVISIBLE);
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
     }
 
     public void displayWishList(){

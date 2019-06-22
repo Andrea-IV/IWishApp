@@ -1,22 +1,39 @@
 package com.example.IWish;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.webkit.URLUtil;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import com.example.IWish.Model.Item;
+import com.example.IWish.Model.User;
+import com.example.IWish.Model.Wishlist;
+import com.example.IWish.api.ItemApi;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class DetailsActivity extends AppCompatActivity {
 
-    protected ArrayList<Item> wishes;
+    private Wishlist wishlist;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +44,15 @@ public class DetailsActivity extends AppCompatActivity {
         if(b != null){
             TextView title = findViewById(R.id.title);
             title.setText(b.getString("TITLE"));
-            loadItem(b.getInt("ID"));
+            try {
+                wishlist = new Wishlist(new JSONObject(b.getString("WISHLIST")));
+                user = new User(new JSONObject(b.getString("USER")));
+                wishlist.user = user;
+                callItem();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            loadItem();
         }
     }
 
@@ -37,14 +62,20 @@ public class DetailsActivity extends AppCompatActivity {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
-    public void loadItem(int wishListID){
+    public void loadItem(){
         ListView listview = findViewById(R.id.listOfItem);
-        callItem(wishListID);
-        DetailsListAdapter adapter = new DetailsListAdapter(this,R.layout.list_of_item, wishes);
+        DetailsListAdapter adapter = new DetailsListAdapter(this,R.layout.list_of_item, wishlist.items);
         listview.setAdapter(adapter);
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Item item = wishlist.items.get(position);
+            goToDetails(view, item);
+            }
+        });
     }
 
-    public void goToDetails(View view){
+    public void goToDetails(View view, final Item item){
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         View popupView = inflater.inflate(R.layout.activity_product, null);
@@ -52,6 +83,77 @@ public class DetailsActivity extends AppCompatActivity {
 
         // create the popup window
         int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        ((TextView)popupView.findViewById(R.id.textTitle)).setText(item.name);
+        ((TextView)popupView.findViewById(R.id.description)).setText(item.description);
+        ((TextView)popupView.findViewById(R.id.price)).setText("Price : " + String.format("%.2f", item.amount));
+
+        if(item.link.isEmpty()){
+            popupView.findViewById(R.id.link).setVisibility(View.GONE);
+        }else{
+            popupView.findViewById(R.id.link).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse(item.link));
+                    startActivity(viewIntent);
+                }
+            });
+        }
+
+        popupView.findViewById(R.id.delete).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteItem(item);
+                callItem();
+                loadItem();
+                popupWindow.dismiss();
+            }
+        });
+
+        popupView.findViewById(R.id.modify).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
+
+        popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+            public void onSwipeBottom() {
+                popupWindow.dismiss();
+            }
+            public void onSwipeTop() {
+            }
+        });
+    }
+
+    public void deleteItem(Item item){
+        ItemApi itemApi = new ItemApi();
+        try {
+            Log.i("DELETEITEM", itemApi.delete(item.id).toString());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+    public void showCreateItem(View view){
+        view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = inflater.inflate(R.layout.create_item, null);
+        popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
         int height = LinearLayout.LayoutParams.WRAP_CONTENT;
         boolean focusable = true; // lets taps outside the popup also dismiss it
         final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
@@ -66,22 +168,76 @@ public class DetailsActivity extends AppCompatActivity {
             public void onSwipeTop() {
             }
         });
+
+        Button createButton = popupView.findViewById(R.id.createItem);
+        createButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+                String productName = ((EditText)popupView.findViewById(R.id.newName)).getText().toString();
+                String description = ((EditText)popupView.findViewById(R.id.description)).getText().toString();
+                String amount = ((EditText)popupView.findViewById(R.id.amount)).getText().toString();
+                String link = ((EditText)popupView.findViewById(R.id.link)).getText().toString();
+                if(productName.isEmpty()){
+                    ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_name_empty);
+                }else if(amount.isEmpty()){
+                    ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_amount_empty);
+                }else{
+                    if(!link.isEmpty()){
+                        if(URLUtil.isValidUrl(link)){
+                            tryCreateProduct(productName, description, amount, link, popupWindow);
+                        }else{
+                            ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_link_problem);
+                        }
+                    }else{
+                        tryCreateProduct(productName, description, amount, link, popupWindow);
+                    }
+                }
+            }
+        });
     }
 
-    private void callItem(int wishListID){
-        wishes = new ArrayList<>();
-    /*
-        wishes.add(new WishedItem(1, "Gloves", "Warm gloves for winter", 15.20, "1", "google.fr", 1, "clothes"));
+    private void tryCreateProduct(String productName, String description, String amount, String link, PopupWindow popupWindow){
+        ItemApi itemApi = new ItemApi();
+        Item item = new Item();
+        item.name = productName;
+        item.description = description;
+        item.amount = Float.parseFloat(amount);
+        item.link = link;
+        item.position = 0;
+        item.wishlist = this.wishlist.id;
+        try {
 
-        wishes.add(new WishedItem(2, "Hot Coffee Mug", "A great mug for warm coffee", 20.20, "2", "google.fr", 2, "house"));
+            wishlist.items.add(itemApi.create(item));
+            loadItem();
+            popupWindow.dismiss();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
-        wishes.add(new WishedItem(3, "Travel to Sweden", "Sweden covered in snow would be a great gift", 400.0, "3", "google.fr", 3, "travel"));
-
-        wishes.add(new WishedItem(4, "Timberland", "Warm shoes for winter", 120.20, "4", "google.fr", 4, "clothes"));
-
-        wishes.add(new WishedItem(5, "Snowboard", "I want to learn snowboard, but i want my own", 80.20, "1", "google.fr", 5, "clothes"));
-
-        wishes.add(new WishedItem(6, "Winter Hat", "To keep my ears warm", 14.20, "6", "google.fr", 6, "clothes"));
-    */
+    private void callItem(){
+        ItemApi itemApi = new ItemApi();
+        try {
+            wishlist.items = new ArrayList<>();
+            List<Item> itemList = itemApi.findAll();
+            for(Item item: itemList){
+                if(item.wishlist == wishlist.id){
+                    wishlist.items.add(item);
+                }
+            }
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -15,6 +15,7 @@ public class RowWishList {
         this.imageId = 1;
         this.title = wishlist.name;
         this.isPublic = wishlist.isPublic;
+        this.wishlist = wishlist;
     }
 
     public Wishlist getWishlist(){ return wishlist; }

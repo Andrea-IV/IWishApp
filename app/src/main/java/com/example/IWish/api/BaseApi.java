@@ -49,4 +49,11 @@ public abstract class BaseApi<T extends Model> {
         T responseInst = createFromJson(jsonObject);
         return responseInst;
     }
+
+    public T delete(long id) throws UnsupportedEncodingException, ExecutionException, InterruptedException, JSONException {
+        String result = this.http.delete(this.actionUrl + id).get();
+        JSONObject jsonObject = new JSONObject(result);
+        T responseInst = createFromJson(jsonObject);
+        return responseInst;
+    }
 }

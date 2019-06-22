@@ -7,12 +7,12 @@ public class Item extends Model {
 
     public String name;
     public String description;
-    public float amount;
+    public double amount;
     public String image;
     public String link;
     public int position;
-    public Wishlist wishlist;
-    public long wishlistId;
+    public long wishlist;
+    public Wishlist fromWishlist;
 
     public Item() {
     }
@@ -24,16 +24,19 @@ public class Item extends Model {
             this.updatedAt = (long) (json.get("updatedAt"));
             this.name = (String) (json.get("name"));
             this.description = (String) (json.get("description"));
-            this.amount = (float) (json.get("amount"));
+            this.amount = Double.parseDouble(json.get("amount").toString());
             this.image = (String) (json.get("image"));
             this.link = (String) (json.get("link"));
             this.position = (int) (json.get("position"));
 
-            this.wishlistId = (int) (json.get("wishlistId"));
-
-            JSONObject wishlistJson = (JSONObject) (json.get("wishlist"));
-            this.wishlist = new Wishlist(wishlistJson, false);
-
+            if(json.has("wishlist")){
+                try {
+                    this.wishlist = Integer.parseInt(json.get("wishlist").toString());
+                } catch(NumberFormatException e) {
+                    this.fromWishlist = new Wishlist((JSONObject) json.get("wishlist"), true);
+                    this.wishlist = fromWishlist.id;
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -51,7 +54,7 @@ public class Item extends Model {
         this.link = other.link;
         this.position = other.position;
         this.wishlist = other.wishlist;
-        this.wishlistId = other.wishlistId;
+        this.fromWishlist = other.fromWishlist;
     }
 
     @Override

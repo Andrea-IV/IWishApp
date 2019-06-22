@@ -17,23 +17,13 @@
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:gravity="start|center_vertical"
-        android:onClick="goToDetails"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/expandArrow"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/expanddown"
-            app:border_width="2dp"
-            app:border_color="@color/ghostTotally"/>
-
         <TextView
             android:id="@+id/itemTitle"
-            android:layout_width="225dp"
+            android:layout_width="262dp"
             android:layout_height="wrap_content"
             android:padding="20sp"
             android:textAllCaps="false"

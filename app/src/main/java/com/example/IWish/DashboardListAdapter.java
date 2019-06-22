@@ -9,6 +9,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.IWish.Model.Wishlist;
+
 import java.util.List;
 
 public class DashboardListAdapter extends ArrayAdapter<RowWishList> {

@@ -15,8 +15,19 @@
     <string name="last_name_hint">Last Name</string>
     <string name="password_not_equal">Password are not equals</string>
     <string name="default_error_creation">Problem with Creation</string>
-    <string name="create_wishlist_name">Wishlist Name</string>
+    <string name="create_wishlist_name">New Wishlist</string>
+    <string name="create_item_name">New Product</string>
     <string name="enter_wishlist_name">Enter Wishlist Name</string>
     <string name="create_button">Create</string>
     <string name="name_empty">Name is empty</string>
+    <string name="enter_item_name">Product name</string>
+    <string name="enter_item_description">Description of the product</string>
+    <string name="enter_item_amount">Price</string>
+    <string name="enter_item_link">Link for the product</string>
+    <string name="create_item_optional">(Optional)</string>
+    <string name="product_amount_empty">Amount is empty</string>
+    <string name="product_name_empty">Product name is empty</string>
+    <string name="product_link_problem">Link isn\'t working</string>
+    <string name="details_modify">Modify</string>
+    <string name="details_delete">Delete</string>
 </resources>

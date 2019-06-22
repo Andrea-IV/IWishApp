@@ -254,10 +254,14 @@ public class MainActivity extends AppCompatActivity {
     public void tryCreateAccount(String email, String password, String firstName, String lastName){
         UserApi userApi = new UserApi();
         try {
-            UserResponse res = userApi.createUser(email, password, firstName, lastName);
+            User user = new User();
+            user.email = email;
+            user.firstName = firstName;
+            user.lastName = lastName;
+
+            user = userApi.create(user);
             Intent intent = new Intent(this, DashboardActivity.class);
-            if(res.user != null){
-                User user = userApi.findById(res.user.id);
+            if(user != null){
                 Bundle bundle = new Bundle();
                 bundle.putString("USER", user.toString());
                 intent.putExtras(bundle);

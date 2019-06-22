@@ -19,4 +19,9 @@ public class HttpClient {
         HttpPostRequest postRequest = new HttpPostRequest();
         return postRequest.exec(url, data);
     }
+
+    public AsyncTask<String, Void, String> delete(String url) throws UnsupportedEncodingException {
+        HttpDeleteRequest deleteRequest = new HttpDeleteRequest();
+        return deleteRequest.exec(url);
+    }
 }

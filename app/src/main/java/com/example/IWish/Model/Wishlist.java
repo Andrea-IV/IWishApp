@@ -1,5 +1,7 @@
 package com.example.IWish.Model;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,24 +56,30 @@ public class Wishlist extends Model {
                 //JSONObject ownerJson = (JSONObject) (json.get("owner"));
                 //this.owner = new User(ownerJson, false);
             //}
+            this.items = new ArrayList<>();
+            this.participants = new ArrayList<>();
 
             if ( includeRelations ) {
-                JSONArray itemsJson = (JSONArray) (json.get("items"));
-                int nbItems = itemsJson.length();
-                this.items = new ArrayList<>(nbItems);
-                for (int i = 0; i < nbItems; i++) {
-                    JSONObject itemJson = (JSONObject) (itemsJson.get(i));
-                    Item item = new Item(itemJson, false);
-                    this.items.add(item);
+                if(json.has("items")){
+                    JSONArray itemsJson = (JSONArray) (json.get("items"));
+                    int nbItems = itemsJson.length();
+                    this.items = new ArrayList<>(nbItems);
+                    for (int i = 0; i < nbItems; i++) {
+                        JSONObject itemJson = new JSONObject(itemsJson.get(i).toString());
+                        Item item = new Item(itemJson, false);
+                        this.items.add(item);
+                    }
                 }
 
-                JSONArray participantsJson = (JSONArray) (json.get("participants"));
-                int nbParticipants = participantsJson.length();
-                this.participants = new ArrayList<>(nbParticipants);
-                for (int i = 0; i < nbParticipants; i++) {
-                    JSONObject participantJson = (JSONObject) (participantsJson.get(i));
-                    User participant = new User(participantJson, false);
-                    this.participants.add(participant);
+                if(json.has("participants")){
+                    JSONArray participantsJson = (JSONArray) (json.get("participants"));
+                    int nbParticipants = participantsJson.length();
+                    this.participants = new ArrayList<>(nbParticipants);
+                    for (int i = 0; i < nbParticipants; i++) {
+                        JSONObject participantJson = (JSONObject) (participantsJson.get(i));
+                        User participant = new User(participantJson, false);
+                        this.participants.add(participant);
+                    }
                 }
             }
         }catch (JSONException e) {
@@ -113,6 +121,21 @@ public class Wishlist extends Model {
                 );
     }
 
+    public String adaptToJson(List<?> objects){
+        String result = "[";
+
+        for(Object object : objects){
+            result += object.toString();
+            result += ",";
+        }
+        if(result.length() > 1){
+            result = result.substring(0, result.length() - 1);
+        }
+        result += "]";
+
+        return result;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -120,7 +143,7 @@ public class Wishlist extends Model {
                 ", \"name\":\"" + name + '\"' +
                 ", \"isPublic\":" + isPublic +
                 ", \"owner\":" + owner +
-                ", \"user\":" + user +
+                ", \"items\":" + adaptToJson(items) +
                 ", \"createdAt\":" + createdAt +
                 ", \"updatedAt\":" + updatedAt +
                 '}';
