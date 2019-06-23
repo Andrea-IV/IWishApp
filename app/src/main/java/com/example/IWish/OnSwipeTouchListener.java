@@ -39,9 +39,9 @@ public class OnSwipeTouchListener implements OnTouchListener {
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX > 0) {
-                            onSwipeRight();
+                            onSwipeRight(e1.getX(), e1.getY());
                         } else {
-                            onSwipeLeft();
+                            onSwipeLeft(e1.getX(), e1.getY());
                         }
                         result = true;
                     }
@@ -61,10 +61,10 @@ public class OnSwipeTouchListener implements OnTouchListener {
         }
     }
 
-    public void onSwipeRight() {
+    public void onSwipeRight(float xStart, float yStart) {
     }
 
-    public void onSwipeLeft() {
+    public void onSwipeLeft(float xStart, float yStart) {
     }
 
     public void onSwipeTop() {

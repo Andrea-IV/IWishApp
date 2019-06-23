@@ -30,4 +30,10 @@
     <string name="product_link_problem">Link isn\'t working</string>
     <string name="details_modify">Modify</string>
     <string name="details_delete">Delete</string>
+    <string name="modify_item_title">Modify Item</string>
+    <string name="create_item_button">Create</string>
+    <string name="modify_item_button">Modify</string>
+    <string name="delete_message">Are you sure you want to delete</string>
+    <string name="delete_button">Delete</string>
+    <string name="cancel_button">Cancel</string>
 </resources>

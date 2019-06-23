@@ -116,6 +116,8 @@ public class DetailsActivity extends AppCompatActivity {
         popupView.findViewById(R.id.modify).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                popupWindow.dismiss();
+                showModifyItem(v, item.name, item.description, item.amount, item.link);
             }
         });
 
@@ -131,10 +133,69 @@ public class DetailsActivity extends AppCompatActivity {
         });
     }
 
+    public void showModifyItem(View view, String baseName, String baseDescription, double baseAmount, String baselink){
+        view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = inflater.inflate(R.layout.create_item, null);
+        popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+            public void onSwipeBottom() {
+                popupWindow.dismiss();
+            }
+            public void onSwipeTop() {
+            }
+        });
+
+        ((TextView)popupView.findViewById(R.id.textView)).setText(R.string.modify_item_title);
+        ((EditText)popupView.findViewById(R.id.newName)).setText(baseName);
+        ((EditText)popupView.findViewById(R.id.description)).setText(baseDescription);
+        ((EditText)popupView.findViewById(R.id.amount)).setText(String.format("%.2f", baseAmount));
+        ((EditText)popupView.findViewById(R.id.link)).setText(baselink);
+
+        Button modifyButton = popupView.findViewById(R.id.createItem);
+        modifyButton.setText(R.string.modify_item_button);
+        modifyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+                String productName = ((EditText)popupView.findViewById(R.id.newName)).getText().toString();
+                String description = ((EditText)popupView.findViewById(R.id.description)).getText().toString();
+                String amount = ((EditText)popupView.findViewById(R.id.amount)).getText().toString();
+                String link = ((EditText)popupView.findViewById(R.id.link)).getText().toString();
+                if(productName.isEmpty()){
+                    ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_name_empty);
+                }else if(amount.isEmpty()){
+                    ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_amount_empty);
+                }else{
+                    if(!link.isEmpty()){
+                        if(URLUtil.isValidUrl(link)){
+                            //tryCreateProduct(productName, description, amount, link, popupWindow);
+                        }else{
+                            ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_link_problem);
+                        }
+                    }else{
+                        //tryCreateProduct(productName, description, amount, link, popupWindow);
+                    }
+                }
+            }
+        });
+    }
+
     public void deleteItem(Item item){
         ItemApi itemApi = new ItemApi();
         try {
-            Log.i("DELETEITEM", itemApi.delete(item.id).toString());
+            itemApi.delete(item.id);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -169,7 +230,9 @@ public class DetailsActivity extends AppCompatActivity {
             }
         });
 
+        ((TextView)popupView.findViewById(R.id.textView)).setText(R.string.create_item_name);
         Button createButton = popupView.findViewById(R.id.createItem);
+        createButton.setText(R.string.create_item_button);
         createButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
