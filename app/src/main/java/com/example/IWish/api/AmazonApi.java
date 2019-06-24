@@ -1,6 +1,6 @@
-package com.jeremie.testandroid.api;
+package com.example.IWish.api;
 
-import com.jeremie.testandroid.http.HttpGetRequest;
+import com.example.IWish.http.HttpGetRequest;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
