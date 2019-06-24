@@ -297,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
     public void tryLogin(String login, String password){
         AuthenticationApi authApi = new AuthenticationApi();
         try {
+            Log.i("LOGIN", authApi.login(login, password).toString());
             LoginResponse res = authApi.login(login, password);
             Intent intent = new Intent(this, DashboardActivity.class);
             if(res.status == 200){

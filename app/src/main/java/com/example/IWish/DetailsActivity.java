@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -63,7 +65,7 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     public void loadItem(){
-        ListView listview = findViewById(R.id.listOfItem);
+        final ListView listview = findViewById(R.id.listOfItem);
         DetailsListAdapter adapter = new DetailsListAdapter(this,R.layout.list_of_item, wishlist.items);
         listview.setAdapter(adapter);
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -82,7 +84,7 @@ public class DetailsActivity extends AppCompatActivity {
         popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
 
         // create the popup window
-        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
         int height = LinearLayout.LayoutParams.WRAP_CONTENT;
         boolean focusable = true; // lets taps outside the popup also dismiss it
         final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);

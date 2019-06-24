@@ -97,7 +97,7 @@ public class DashboardActivity extends AppCompatActivity {
                 if(listview.getChildCount() > 0){
                     float childHeight = convertDpToPixel(70);
 
-                    int position = (int)yStart / (int)childHeight;
+                    final int position = (int)yStart / (int)childHeight;
                     final View swipedView = listview.getChildAt(position);
                     ImageView image = swipedView.findViewById(R.id.expand);
 
@@ -138,7 +138,7 @@ public class DashboardActivity extends AppCompatActivity {
                         swipedView.findViewById(R.id.deleteWishlist).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                showDeleteWishlist(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString());
+                                showDeleteWishlist(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position);
                             }
                         });
                     }
@@ -184,7 +184,7 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
-    public void showDeleteWishlist(View view, final int id, String name){
+    public void showDeleteWishlist(View view, final int id, String name, final int position){
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View popupView = inflater.inflate(R.layout.delete_wishlist, null);
@@ -213,7 +213,7 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
-                tryDeleteWishlist(id);
+                tryDeleteWishlist(id, position);
                 popupWindow.dismiss();
             }
         });
@@ -337,10 +337,12 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
-    public void tryDeleteWishlist(int id){
+    public void tryDeleteWishlist(int id, int position){
         WishlistApi wishlistApi = new WishlistApi();
         try {
             wishlistApi.delete(id);
+            user.wishlists.remove(position);
+            loadWishList();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -354,9 +356,11 @@ public class DashboardActivity extends AppCompatActivity {
 
     public void displayWishList(){
         rowWishLists = new ArrayList<>();
-
+        int i = 0;
         for(Wishlist wishlist: user.wishlists){
             rowWishLists.add(new RowWishList(wishlist));
+            Log.i("DELETE", Integer.toString(i));
+            i++;
         }
     }
 
