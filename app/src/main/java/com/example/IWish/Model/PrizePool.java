@@ -9,12 +9,12 @@ import java.util.List;
 
 public class PrizePool extends Model {
 
-    public long endDate;
-    public boolean closed;
+    public Long endDate;
+    public Boolean closed;
     public Wishlist wishlist;
-    public long wishlistId;
+    public Long wishlistId;
     public User manager;
-    public long managerId;
+    public Long managerId;
     public List<Donation> donations;
 
     public PrizePool() {
@@ -28,8 +28,8 @@ public class PrizePool extends Model {
             this.endDate = (long) (json.get("endDate"));
             this.closed = (boolean) (json.get("closed"));
 
-            this.wishlistId = (int) (json.get("wishlistId"));
-            this.managerId = (int) (json.get("managerId"));
+            this.wishlistId = Long.decode((String)json.get("wishlistId"));
+            this.managerId = Long.decode((String)json.get("managerId"));
 
             JSONObject wishlistJson = (JSONObject) (json.get("wishlist"));
             this.wishlist = new Wishlist(wishlistJson, false);

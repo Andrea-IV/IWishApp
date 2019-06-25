@@ -24,4 +24,9 @@ public class HttpClient {
         HttpDeleteRequest deleteRequest = new HttpDeleteRequest();
         return deleteRequest.exec(url);
     }
+
+    public AsyncTask<String, Void, String> patch(String url, Map<String, String> data) throws UnsupportedEncodingException {
+        HttpPatchRequest patchRequest = new HttpPatchRequest();
+        return patchRequest.exec(url, data);
+    }
 }

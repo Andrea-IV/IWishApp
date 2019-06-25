@@ -5,11 +5,11 @@ import org.json.JSONObject;
 
 public class Donation extends Model {
 
-    public float amount;
+    public Float amount;
     public PrizePool prizePool;
-    public long prizePoolId;
+    public Long prizePoolId;
     public User donor;
-    public long donorId;
+    public Long donorId;
 
     public Donation() {
     }
@@ -21,8 +21,8 @@ public class Donation extends Model {
             this.updatedAt = (long) (json.get("updatedAt"));
             this.amount = (float) (json.get("amount"));
 
-            this.prizePoolId = (int) (json.get("prizePoolId"));
-            this.donorId = (int) (json.get("donorId"));
+            this.prizePoolId = Long.parseLong((String)json.get("prizePoolId"));
+            this.donorId = Long.parseLong((String)json.get("donorId"));
 
             JSONObject prizePoolJson = (JSONObject) (json.get("prizePool"));
             this.prizePool = new PrizePool(prizePoolJson, false);

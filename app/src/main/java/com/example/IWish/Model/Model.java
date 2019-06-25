@@ -1,5 +1,7 @@
 package com.example.IWish.Model;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -49,6 +51,9 @@ public abstract class Model {
             }
         }
 
+        for (Map.Entry e : map.entrySet()){
+            Log.i("PATCH", "map iter : " + e.getKey() + " " + e.getValue());
+        }
         return map;
     }
 }
