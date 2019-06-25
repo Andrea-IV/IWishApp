@@ -51,9 +51,6 @@ public abstract class Model {
             }
         }
 
-        for (Map.Entry e : map.entrySet()){
-            Log.i("PATCH", "map iter : " + e.getKey() + " " + e.getValue());
-        }
         return map;
     }
 }
