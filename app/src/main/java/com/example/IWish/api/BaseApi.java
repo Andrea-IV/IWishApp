@@ -65,4 +65,11 @@ public abstract class BaseApi<T extends Model> {
         T responseInst = createFromJson(jsonObject);
         return responseInst;
     }
+
+    protected T addRelation(long id, String relation, long fk) throws JSONException, ExecutionException, InterruptedException {
+        String result = this.http.put(this.actionUrl + id + "/" + relation + "/" + fk).get();
+        JSONObject jsonObject = new JSONObject(result);
+        T inst = createFromJson(jsonObject);
+        return inst;
+    }
 }

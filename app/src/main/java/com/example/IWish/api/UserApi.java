@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.IWish.ApiConfig;
 import com.example.IWish.Model.User;
+import com.example.IWish.Model.Wishlist;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,14 +26,14 @@ public class UserApi extends BaseApi<User> {
         return new User(jsonObject);
     }
 
-    public UserResponse createUser(String email, String password, String firstName, String lastName) throws UnsupportedEncodingException, ExecutionException, InterruptedException, JSONException {
+    public UserResponse createUser(String email, String password, String firstName, String lastName) throws ExecutionException, InterruptedException, JSONException {
         String result = this.http.get(actionUrl + "create?" + "email=" + email + "&password=" + password +"&firstName=" + firstName +"&lastName=" + lastName).get();
 
         JSONObject jsonObject = new JSONObject(result);
         return new UserResponse(jsonObject);
     }
 
-    public JSONArray findsUser(String id, String email, String firstName, String lastName) throws UnsupportedEncodingException, ExecutionException, InterruptedException, JSONException {
+    public JSONArray findsUser(String id, String email, String firstName, String lastName) throws ExecutionException, InterruptedException, JSONException {
         boolean first = true;
         String parameters = "";
 
@@ -66,5 +67,9 @@ public class UserApi extends BaseApi<User> {
         }
         String result = this.http.get(actionUrl + "?" + parameters).get();
         return new JSONArray(result);
+    }
+
+    public User addCategory(long id, long fk) throws InterruptedException, ExecutionException, JSONException {
+        return super.addRelation(id, "categories", fk);
     }
 }

@@ -133,13 +133,16 @@ public class User extends Model {
     }
 
     public String adaptToJson(List<?> objects){
-        String result = "[";
+        if ( objects == null ){
+            return "null";
+        }
 
-        for(Object object : objects){
+        String result = "[";
+        for (Object object : objects) {
             result += object.toString();
             result += ",";
         }
-        if(result.length() > 1){
+        if (result.length() > 1) {
             result = result.substring(0, result.length() - 1);
         }
         result += "]";

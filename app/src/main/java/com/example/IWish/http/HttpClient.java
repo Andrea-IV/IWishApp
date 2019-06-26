@@ -20,7 +20,7 @@ public class HttpClient {
         return postRequest.exec(url, data);
     }
 
-    public AsyncTask<String, Void, String> delete(String url) throws UnsupportedEncodingException {
+    public AsyncTask<String, Void, String> delete(String url) {
         HttpDeleteRequest deleteRequest = new HttpDeleteRequest();
         return deleteRequest.exec(url);
     }
@@ -28,5 +28,10 @@ public class HttpClient {
     public AsyncTask<String, Void, String> patch(String url, Map<String, String> data) throws UnsupportedEncodingException {
         HttpPatchRequest patchRequest = new HttpPatchRequest();
         return patchRequest.exec(url, data);
+    }
+
+    public AsyncTask<String, Void, String> put(String url) {
+        HttpPutRequest putRequest = new HttpPutRequest();
+        return putRequest.exec(url);
     }
 }

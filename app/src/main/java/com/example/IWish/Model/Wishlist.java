@@ -130,6 +130,10 @@ public class Wishlist extends Model {
     }
 
     public String adaptToJson(List<?> objects){
+        if ( objects == null ){
+            return "null";
+        }
+
         String result = "[";
 
         for(Object object : objects){
@@ -151,9 +155,10 @@ public class Wishlist extends Model {
                 ", \"name\":\"" + name + '\"' +
                 ", \"isPublic\":" + isPublic +
                 ", \"owner\":" + owner +
-                ", \"items\":" + adaptToJson(items) +
+                ", \"items\": ..." + /*adaptToJson(items) +*/
                 ", \"createdAt\":" + createdAt +
                 ", \"updatedAt\":" + updatedAt +
+                ", \"participants\": " + participants +
                 '}';
     }
 }
