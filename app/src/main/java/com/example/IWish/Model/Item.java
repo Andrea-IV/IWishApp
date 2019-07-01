@@ -7,11 +7,11 @@ public class Item extends Model {
 
     public String name;
     public String description;
-    public double amount;
+    public Double amount;
     public String image;
     public String link;
-    public int position;
-    public long wishlist;
+    public Integer position;
+    public Long wishlist;
     public Wishlist fromWishlist;
 
     public Item() {
@@ -31,7 +31,7 @@ public class Item extends Model {
 
             if(json.has("wishlist")){
                 try {
-                    this.wishlist = Integer.parseInt(json.get("wishlist").toString());
+                    this.wishlist = Long.parseLong(json.get("wishlist").toString());
                 } catch(NumberFormatException e) {
                     this.fromWishlist = new Wishlist((JSONObject) json.get("wishlist"), true);
                     this.wishlist = fromWishlist.id;

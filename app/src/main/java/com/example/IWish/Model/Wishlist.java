@@ -12,12 +12,12 @@ import java.util.List;
 public class Wishlist extends Model {
 
     public String name;
-    public boolean isPublic;
+    public Boolean isPublic;
     public List<Item> items;
     public PrizePool prizePool;
-    public long prizePoolId;
+    public Long prizePoolId;
     public User user;
-    public long owner;
+    public Long owner;
     public List<User> participants;
 
     public Wishlist() {
@@ -32,11 +32,11 @@ public class Wishlist extends Model {
             this.isPublic = (boolean) (json.get("isPublic"));
 
             if(json.has("prizePoolId")){
-                this.prizePoolId = (int) (json.get("prizePoolId"));
+                this.prizePoolId = Long.decode((String)json.get("prizePoolId"));
             }
             if(json.has("owner")){
                 try {
-                    owner = Integer.parseInt(json.get("owner").toString());
+                    owner = Long.decode(json.get("owner").toString());
                 } catch(NumberFormatException e) {
                     this.user = new User((JSONObject) json.get("owner"), false);
                     this.owner = user.id;
@@ -44,7 +44,7 @@ public class Wishlist extends Model {
             }
 
             if(json.has("ownerId")){
-                this.owner = (int)json.get("ownerId");
+                this.owner =  Long.decode((String)json.get("ownerId"));
              }
 
             /*if(json.has("prizePool")){
@@ -82,7 +82,7 @@ public class Wishlist extends Model {
                     }
                 }
             }
-        }catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
@@ -94,7 +94,6 @@ public class Wishlist extends Model {
     public Wishlist(Wishlist other) {
         this.name = other.name;
         this.isPublic = other.isPublic;
-        this.items = other.items;
         this.prizePool = other.prizePool;
         this.prizePoolId = other.prizePoolId;
         this.owner = other.owner;
@@ -103,6 +102,10 @@ public class Wishlist extends Model {
         this.participants = new ArrayList<>(other.participants.size());
         for ( User participant : other.participants )
             this.participants.add(new User(participant));
+
+        this.items = new ArrayList<>(other.items.size());
+        for ( Item item : other.items )
+            this.items.add(new Item(item));
     }
 
     @Override
@@ -118,10 +121,19 @@ public class Wishlist extends Model {
                                 .put("type", "List<User>")
                                 .put("model", "User")
                         )
+                        .put("items", new JSONObject()
+                                .put("name", "items")
+                                .put("type", "List<Item>")
+                                .put("model", "Item")
+                        )
                 );
     }
 
     public String adaptToJson(List<?> objects){
+        if ( objects == null ){
+            return "null";
+        }
+
         String result = "[";
 
         for(Object object : objects){
@@ -143,9 +155,10 @@ public class Wishlist extends Model {
                 ", \"name\":\"" + name + '\"' +
                 ", \"isPublic\":" + isPublic +
                 ", \"owner\":" + owner +
-                ", \"items\":" + adaptToJson(items) +
+                ", \"items\": ..." + /*adaptToJson(items) +*/
                 ", \"createdAt\":" + createdAt +
                 ", \"updatedAt\":" + updatedAt +
+                ", \"participants\": " + participants +
                 '}';
     }
 }

@@ -267,7 +267,7 @@ public class DetailsActivity extends AppCompatActivity {
         Item item = new Item();
         item.name = productName;
         item.description = description;
-        item.amount = Float.parseFloat(amount);
+        item.amount = Double.parseDouble(amount);
         item.link = link;
         item.position = 0;
         item.wishlist = this.wishlist.id;

@@ -1,5 +1,7 @@
 package com.example.IWish.api;
 
+import android.util.Log;
+
 import com.example.IWish.Model.Model;
 import com.example.IWish.http.HttpClient;
 import org.json.JSONArray;
@@ -55,5 +57,19 @@ public abstract class BaseApi<T extends Model> {
         JSONObject jsonObject = new JSONObject(result);
         T responseInst = createFromJson(jsonObject);
         return responseInst;
+    }
+
+    public T updateAttributes(long id, T newAttributes) throws UnsupportedEncodingException, ExecutionException, InterruptedException, JSONException {
+        String result = this.http.patch(this.actionUrl + id, newAttributes.toMap()).get();
+        JSONObject jsonObject = new JSONObject(result);
+        T responseInst = createFromJson(jsonObject);
+        return responseInst;
+    }
+
+    protected T addRelation(long id, String relation, long fk) throws JSONException, ExecutionException, InterruptedException {
+        String result = this.http.put(this.actionUrl + id + "/" + relation + "/" + fk).get();
+        JSONObject jsonObject = new JSONObject(result);
+        T inst = createFromJson(jsonObject);
+        return inst;
     }
 }

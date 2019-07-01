@@ -1,5 +1,7 @@
 package com.example.IWish.Model;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
