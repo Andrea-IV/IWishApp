@@ -4,9 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +19,7 @@ import android.widget.TextView;
 import com.example.IWish.Model.Item;
 import com.example.IWish.Model.User;
 import com.example.IWish.Model.Wishlist;
+import com.example.IWish.api.AmazonApi;
 import com.example.IWish.api.ItemApi;
 
 import org.json.JSONException;
@@ -119,7 +117,7 @@ public class DetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 popupWindow.dismiss();
-                showModifyItem(v, item.name, item.description, item.amount, item.link);
+                showModifyItem(v, item.id, item.name, item.description, item.amount, item.link);
             }
         });
 
@@ -135,7 +133,7 @@ public class DetailsActivity extends AppCompatActivity {
         });
     }
 
-    public void showModifyItem(View view, String baseName, String baseDescription, double baseAmount, String baselink){
+    public void showModifyItem(View view, final long id, String baseName, String baseDescription, double baseAmount, String baselink){
         view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -182,14 +180,45 @@ public class DetailsActivity extends AppCompatActivity {
                 }else{
                     if(!link.isEmpty()){
                         if(URLUtil.isValidUrl(link)){
-                            //tryCreateProduct(productName, description, amount, link, popupWindow);
+                            tryModifyProduct(id, productName, description, amount, link, popupWindow);
                         }else{
                             ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_link_problem);
                         }
                     }else{
-                        //tryCreateProduct(productName, description, amount, link, popupWindow);
+                        tryModifyProduct(id, productName, description, amount, link, popupWindow);
                     }
                 }
+            }
+        });
+
+        Button modifyAmazonButton = popupView.findViewById(R.id.createAmazonItem);
+        modifyAmazonButton.setText(R.string.modify_amazon_item_button);
+        modifyAmazonButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+            String link = ((EditText) popupView.findViewById(R.id.link)).getText().toString();
+            if (!link.isEmpty()) {
+                if (URLUtil.isValidUrl(link)) {
+                    AmazonApi amazonApi = new AmazonApi();
+                    try {
+                        Item item = amazonApi.getItemFromUrl(link);
+                        if(item != null){
+                            tryModifyProduct(id, item.name, "", item.amount.toString(), link, popupWindow);
+                        }else{
+                            ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.amazon_link_not_working);
+                        }
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.product_link_problem);
+                }
+            } else {
+                ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.link_empty);
+            }
             }
         });
     }
@@ -238,25 +267,56 @@ public class DetailsActivity extends AppCompatActivity {
         createButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
-                String productName = ((EditText)popupView.findViewById(R.id.newName)).getText().toString();
-                String description = ((EditText)popupView.findViewById(R.id.description)).getText().toString();
-                String amount = ((EditText)popupView.findViewById(R.id.amount)).getText().toString();
-                String link = ((EditText)popupView.findViewById(R.id.link)).getText().toString();
-                if(productName.isEmpty()){
-                    ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_name_empty);
-                }else if(amount.isEmpty()){
-                    ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_amount_empty);
-                }else{
-                    if(!link.isEmpty()){
-                        if(URLUtil.isValidUrl(link)){
-                            tryCreateProduct(productName, description, amount, link, popupWindow);
-                        }else{
-                            ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_link_problem);
-                        }
-                    }else{
+            view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+            String productName = ((EditText)popupView.findViewById(R.id.newName)).getText().toString();
+            String description = ((EditText)popupView.findViewById(R.id.description)).getText().toString();
+            String amount = ((EditText)popupView.findViewById(R.id.amount)).getText().toString();
+            String link = ((EditText)popupView.findViewById(R.id.link)).getText().toString();
+            if(productName.isEmpty()){
+                ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_name_empty);
+            }else if(amount.isEmpty()){
+                ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_amount_empty);
+            }else{
+                if(!link.isEmpty()){
+                    if(URLUtil.isValidUrl(link)){
                         tryCreateProduct(productName, description, amount, link, popupWindow);
+                    }else{
+                        ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.product_link_problem);
                     }
+                }else{
+                    tryCreateProduct(productName, description, amount, link, popupWindow);
+                }
+            }
+            }
+        });
+
+        Button createAmazonButton = popupView.findViewById(R.id.createAmazonItem);
+        createAmazonButton.setText(R.string.create_amazon_button);
+        createAmazonButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+                String link = ((EditText) popupView.findViewById(R.id.link)).getText().toString();
+                if (!link.isEmpty()) {
+                    if (URLUtil.isValidUrl(link)) {
+                        AmazonApi amazonApi = new AmazonApi();
+                        try {
+                            Item item = amazonApi.getItemFromUrl(link);
+                            if(item != null){
+                                tryCreateProduct(item.name, "", item.amount.toString(), link, popupWindow);
+                            }else{
+                                ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.amazon_link_not_working);
+                            }
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.product_link_problem);
+                    }
+                } else {
+                    ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.link_empty);
                 }
             }
         });
@@ -284,6 +344,34 @@ public class DetailsActivity extends AppCompatActivity {
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void tryModifyProduct(long id, String productName, String description, String amount, String link, PopupWindow popupWindow){
+        ItemApi itemApi = new ItemApi();
+        for(Item item: wishlist.items){
+            if(item.id == id){
+                item.name = productName;
+                item.description = description;
+                item.amount = Double.parseDouble(amount);
+                item.link = link;
+                item.position = 0;
+                item.wishlist = this.wishlist.id;
+                try {
+                    itemApi.updateAttributes(item.id, item);
+                    loadItem();
+                    popupWindow.dismiss();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
         }
     }
 

@@ -1,7 +1,5 @@
 package com.example.IWish.api;
 
-import android.util.Log;
-
 import com.example.IWish.ApiConfig;
 import com.example.IWish.http.HttpClient;
 import org.json.JSONException;
@@ -21,7 +19,6 @@ public class AuthenticationApi {
         postData.put("password", password);
 
         String result = this.http.post(ApiConfig.LOGIN_URL, postData).get();
-        Log.i("LOGIN", result);
         JSONObject jsonObject = new JSONObject(result);
         return new LoginResponse(jsonObject);
     }

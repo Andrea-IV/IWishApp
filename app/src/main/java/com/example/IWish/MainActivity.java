@@ -1,26 +1,59 @@
 package com.example.IWish;
 
 import android.animation.ValueAnimator;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.IWish.Model.User;
 import com.example.IWish.api.AuthenticationApi;
 import com.example.IWish.api.LoginResponse;
 import com.example.IWish.api.UserApi;
-import com.example.IWish.api.UserResponse;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
+import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
+
+    CallbackManager callbackManager;
+    ProgressDialog mDialog;
+    ImageView imgAvatar;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +89,130 @@ public class MainActivity extends AppCompatActivity {
 
         View returnButton = findViewById(R.id.returnButton);
         returnButton.setVisibility(View.INVISIBLE);
+
+        callbackManager = CallbackManager.Factory.create();
+
+        LoginButton loginButton = (LoginButton)findViewById(R.id.login_button);
+        loginButton.setReadPermissions(Arrays.asList("public_profile", "email"));
+
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                mDialog = new ProgressDialog(MainActivity.this);
+                mDialog.setMessage("Retrieving data...");
+                mDialog.show();
+
+                GraphRequest request = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        mDialog.dismiss();
+                        isAlreadyActive(object);
+                    }
+                });
+
+                Bundle parameters = new Bundle();
+                parameters.putString("fields", "id,email,first_name,last_name");
+                request.setParameters(parameters);
+                request.executeAsync();
+            }
+
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+
+            }
+        });
+
+        if(AccessToken.getCurrentAccessToken() != null){
+            GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                @Override
+                public void onCompleted(JSONObject object, GraphResponse response) {
+                    Log.i("FACEBOOK", object.toString());
+                    Log.i("FACEBOOK", response.toString());
+                    isAlreadyActive(object);
+                }
+            });
+
+            Bundle parameters = new Bundle();
+            parameters.putString("fields", "id,email,first_name,last_name");
+            request.setParameters(parameters);
+            request.executeAsync();
+        }
     }
+
+    private void isAlreadyActive(JSONObject object) {
+        UserApi userApi = new UserApi();
+        try {
+            JSONArray response = userApi.findsUser("", object.getString("email"), "", "");
+            Intent intent = new Intent(this, DashboardActivity.class);
+
+            if(response.toString().equals("[]")){
+                User user = userApi.createUser(object.getString("email"), randomPassword(),  object.getString("first_name"), object.getString("last_name"));
+                Bundle bundle = new Bundle();
+                bundle.putString("USER", user.toString());
+                intent.putExtras(bundle);
+
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }else{
+                User user = new User((JSONObject)response.get(0));
+                Log.i("FACEBOOKLOGIN", user.toString());
+                Bundle bundle = new Bundle();
+                bundle.putString("USER", user.toString());
+                intent.putExtras(bundle);
+
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        /*try{
+            imgAvatar = findViewById(R.id.logo);
+            URL profile_picture = new URL("https://graph.facebook.com/" + object.getString("id") + "/picture?width=250&height=250");
+
+            Picasso.with(this).load(profile_picture.toString()).into(imgAvatar);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }*/
+    }
+
+    public static String randomPassword() {
+        Random generator = new Random();
+        StringBuilder randomStringBuilder = new StringBuilder();
+        int randomLength = generator.nextInt(20);
+        char tempChar;
+        for (int i = 0; i < randomLength; i++){
+            tempChar = (char) (generator.nextInt(96) + 32);
+            randomStringBuilder.append(tempChar);
+        }
+        return randomStringBuilder.toString();
+    }
+
+    /*private void printKeyHash() {
+        try{
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
+            for(Signature signature: info.signatures){
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.i("KeyHash", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }*/
 
     public void showLoginInput(View view) {
         View emailInput = findViewById(R.id.emailInput);
@@ -78,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float alpha = (float) animation.getAnimatedValue();
                 findViewById(R.id.loginShow).setAlpha(alpha);
+                findViewById(R.id.login_button).setAlpha(alpha);
                 findViewById(R.id.createShow).setAlpha(alpha);
             }
         });
@@ -95,6 +252,9 @@ public class MainActivity extends AppCompatActivity {
         });
         fadeOut.start();
         fadeIn.start();
+
+        View facebookShow = findViewById(R.id.login_button);
+        facebookShow.setVisibility(View.INVISIBLE);
 
         View loginShow = findViewById(R.id.loginShow);
         loginShow.setVisibility(View.INVISIBLE);
@@ -136,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.titleApp).setAlpha(alpha);
                 findViewById(R.id.loginShow).setAlpha(alpha);
                 findViewById(R.id.createShow).setAlpha(alpha);
+                findViewById(R.id.login_button).setAlpha(alpha);
             }
         });
         ValueAnimator fadeIn = ValueAnimator.ofFloat(0f, 1f);
@@ -156,6 +317,9 @@ public class MainActivity extends AppCompatActivity {
         fadeOut.start();
         fadeIn.start();
 
+        View facebookShow = findViewById(R.id.login_button);
+        facebookShow.setVisibility(View.INVISIBLE);
+
         View loginShow = findViewById(R.id.loginShow);
         loginShow.setVisibility(View.INVISIBLE);
 
@@ -164,6 +328,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void returnMainMenu(View view){
+        View facebookShow = findViewById(R.id.login_button);
+        facebookShow.setVisibility(View.VISIBLE);
 
         View loginShow = findViewById(R.id.loginShow);
         loginShow.setVisibility(View.VISIBLE);
@@ -196,6 +362,7 @@ public class MainActivity extends AppCompatActivity {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float alpha = (float) animation.getAnimatedValue();
                 findViewById(R.id.loginShow).setAlpha(alpha);
+                findViewById(R.id.login_button).setAlpha(alpha);
                 findViewById(R.id.createShow).setAlpha(alpha);
             }
         });
@@ -254,12 +421,8 @@ public class MainActivity extends AppCompatActivity {
     public void tryCreateAccount(String email, String password, String firstName, String lastName){
         UserApi userApi = new UserApi();
         try {
-            User user = new User();
-            user.email = email;
-            user.firstName = firstName;
-            user.lastName = lastName;
 
-            user = userApi.create(user);
+            User user = userApi.createUser(email, password, firstName, lastName);
             Intent intent = new Intent(this, DashboardActivity.class);
             if(user != null){
                 Bundle bundle = new Bundle();
@@ -273,8 +436,6 @@ public class MainActivity extends AppCompatActivity {
                 View loadingPanel = findViewById(R.id.loadingPanel);
                 loadingPanel.setVisibility(View.INVISIBLE);
             }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -297,7 +458,6 @@ public class MainActivity extends AppCompatActivity {
     public void tryLogin(String login, String password){
         AuthenticationApi authApi = new AuthenticationApi();
         try {
-            Log.i("LOGIN", authApi.login(login, password).toString());
             LoginResponse res = authApi.login(login, password);
             Intent intent = new Intent(this, DashboardActivity.class);
             if(res.status == 200){

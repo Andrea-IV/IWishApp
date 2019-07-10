@@ -2,18 +2,15 @@ package com.example.IWish;
 
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
@@ -58,7 +55,6 @@ public class DashboardActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-
         loadWishList();
     }
 
@@ -228,7 +224,7 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
-    public void showModifyWishlist(View view, int id, String name){
+    public void showModifyWishlist(View view, final int id, String name){
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View popupView = inflater.inflate(R.layout.create_wishlist, null);
@@ -263,7 +259,7 @@ public class DashboardActivity extends AppCompatActivity {
                 if(wishlistName.isEmpty()){
                     ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.name_empty);
                 }else{
-                    //tryCreateWishlist(wishlistName, popupWindow);
+                    tryModifyWishlist(id, wishlistName, popupWindow);
                 }
             }
         });
@@ -323,9 +319,9 @@ public class DashboardActivity extends AppCompatActivity {
         wishlist.name = wishlistName;
         wishlist.owner = user.id;
         try {
-          user.wishlists.add(wishlistApi.create(wishlist));
-          loadWishList();
-          popupWindow.dismiss();
+            user.wishlists.add(wishlistApi.create(wishlist));
+            loadWishList();
+            popupWindow.dismiss();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -337,11 +333,34 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
+    public void tryModifyWishlist(int id, String wishlistName, PopupWindow popupWindow){
+        WishlistApi wishlistApi = new WishlistApi();
+        for(Wishlist wishlist: user.wishlists){
+            if(wishlist.id == id){
+                wishlist.name = wishlistName;
+                try {
+                    wishlistApi.updateAttributes(wishlist.id, wishlist);
+                    loadWishList();
+                    popupWindow.dismiss();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+        }
+    }
+
     public void tryDeleteWishlist(int id, int position){
         WishlistApi wishlistApi = new WishlistApi();
         try {
             wishlistApi.delete(id);
-            user.wishlists.remove(position);
+            user.wishlists.remove(position + 1);
             loadWishList();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -359,7 +378,6 @@ public class DashboardActivity extends AppCompatActivity {
         int i = 0;
         for(Wishlist wishlist: user.wishlists){
             rowWishLists.add(new RowWishList(wishlist));
-            Log.i("DELETE", Integer.toString(i));
             i++;
         }
     }

@@ -155,7 +155,7 @@ public class Wishlist extends Model {
                 ", \"name\":\"" + name + '\"' +
                 ", \"isPublic\":" + isPublic +
                 ", \"owner\":" + owner +
-                ", \"items\": ..." + /*adaptToJson(items) +*/
+                ", \"items\":" + adaptToJson(items) +
                 ", \"createdAt\":" + createdAt +
                 ", \"updatedAt\":" + updatedAt +
                 ", \"participants\": " + participants +

@@ -19,7 +19,10 @@
     <string name="create_item_name">New Product</string>
     <string name="enter_wishlist_name">Enter Wishlist Name</string>
     <string name="create_button">Create</string>
+    <string name="create_amazon_button">Create from amazon link</string>
     <string name="name_empty">Name is empty</string>
+    <string name="link_empty">Link is empty</string>
+    <string name="amazon_link_not_working">Link amazon isn\'t working</string>
     <string name="enter_item_name">Product name</string>
     <string name="enter_item_description">Description of the product</string>
     <string name="enter_item_amount">Price</string>
@@ -31,9 +34,12 @@
     <string name="details_modify">Modify</string>
     <string name="details_delete">Delete</string>
     <string name="modify_item_title">Modify Item</string>
+    <string name="modify_amazon_item_button">Modify Item From Amazon Link</string>
     <string name="create_item_button">Create</string>
     <string name="modify_item_button">Modify</string>
     <string name="delete_message">Are you sure you want to delete</string>
     <string name="delete_button">Delete</string>
     <string name="cancel_button">Cancel</string>
+    <string name="facebook_app_id">650603548751276</string>
+    <string name="facebook_login_protocol_scheme">fb650603548751276</string>
 </resources>

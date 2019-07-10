@@ -1,18 +1,12 @@
 package com.example.IWish.api;
 
-import android.util.Log;
-
 import com.example.IWish.ApiConfig;
 import com.example.IWish.Model.User;
-import com.example.IWish.Model.Wishlist;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class UserApi extends BaseApi<User> {
@@ -26,11 +20,11 @@ public class UserApi extends BaseApi<User> {
         return new User(jsonObject);
     }
 
-    public UserResponse createUser(String email, String password, String firstName, String lastName) throws ExecutionException, InterruptedException, JSONException {
+    public User createUser(String email, String password, String firstName, String lastName) throws ExecutionException, InterruptedException, JSONException {
         String result = this.http.get(actionUrl + "create?" + "email=" + email + "&password=" + password +"&firstName=" + firstName +"&lastName=" + lastName).get();
 
         JSONObject jsonObject = new JSONObject(result);
-        return new UserResponse(jsonObject);
+        return new User(jsonObject);
     }
 
     public JSONArray findsUser(String id, String email, String firstName, String lastName) throws ExecutionException, InterruptedException, JSONException {
