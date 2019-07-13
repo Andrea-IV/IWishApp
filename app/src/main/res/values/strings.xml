@@ -44,4 +44,5 @@
     <string name="facebook_login_protocol_scheme">fb650603548751276</string>
     <string name="saved_facebook_token">com.example.IWish.facebook_saved_token_key</string>
     <string name="share_user_title">Invite user in </string>
+    <string name="shared_user_title">Users seeing this Wishlist</string>
 </resources>

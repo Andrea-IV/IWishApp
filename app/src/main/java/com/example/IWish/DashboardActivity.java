@@ -34,6 +34,7 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -160,11 +161,30 @@ public class DashboardActivity extends AppCompatActivity {
                             public void onClick(View v) {
                                 UserApi userApi = new UserApi();
                                 try {
-                                    userList = userApi.findAll();
+                                    userList = new LinkedList<User>();
+                                    int id = Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString());
+                                    boolean add;
+                                    for(User user: userApi.findAll()){
+                                        add = true;
+                                        for(Wishlist list: user.wishlists){
+                                            if(list.id == id){
+                                                Log.i("USER", id + " " + list.id);
+                                                add = false;
+                                            }
+                                        }
+                                        for(Wishlist list: user.concernedWishlists){
+                                            if(list.id == id){
+                                                Log.i("USER", String.valueOf(id) + " " + String.valueOf(list.id));
+                                                add = false;
+                                            }
+                                        }
+                                        if(add){
+                                            userList.add(user);
+                                        }else{
+                                            Log.i("USER", user.toString());
+                                        }
+                                    }
                                     showShareList(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position);
-                                /*for(int i = 0; i < userList.size(); i++){
-                                    if()
-                                }*/
                                 } catch (ExecutionException e) {
                                     e.printStackTrace();
                                 } catch (InterruptedException e) {

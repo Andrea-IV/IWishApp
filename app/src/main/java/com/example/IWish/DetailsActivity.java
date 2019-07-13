@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,13 +22,18 @@ import com.example.IWish.Model.User;
 import com.example.IWish.Model.Wishlist;
 import com.example.IWish.api.AmazonApi;
 import com.example.IWish.api.ItemApi;
+import com.example.IWish.api.UserApi;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.ExecutionException;
 
 public class DetailsActivity extends AppCompatActivity {
@@ -249,6 +255,58 @@ public class DetailsActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+    public void showSharedUser(View view){
+        view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = inflater.inflate(R.layout.show_users, null);
+        popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+        UserApi userApi = new UserApi();
+        try {
+            List<User> userList = new LinkedList<User>();
+            for(User user: userApi.findAll()){
+                for(Wishlist list: user.wishlists){
+                    if(list.id == this.wishlist.id){
+                        userList.add(user);
+                    }
+                }
+                for(Wishlist list: user.concernedWishlists){
+                    if(list.id == this.wishlist.id){
+                        userList.add(user);
+                    }
+                }
+            }
+            ListView userListView = popupView.findViewById(R.id.listOfUsers);
+            UserListAdapter adapter = new UserListAdapter(this, R.layout.show_users, userList);
+            userListView.setAdapter(adapter);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+            public void onSwipeBottom() {
+                popupWindow.dismiss();
+            }
+            public void onSwipeTop() {
+            }
+        });
+    }
+
     public void showCreateItem(View view){
         view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
         // inflate the layout of the popup window
