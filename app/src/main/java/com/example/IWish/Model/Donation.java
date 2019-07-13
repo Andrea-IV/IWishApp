@@ -1,11 +1,13 @@
 package com.example.IWish.Model;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Donation extends Model {
 
-    public Float amount;
+    public Double amount;
     public PrizePool prizePool;
     public Long prizePoolId;
     public User donor;
@@ -15,20 +17,33 @@ public class Donation extends Model {
     }
 
     public Donation(JSONObject json, boolean includeRelations) {
+        Log.i("TAGTAG", "json="+json);
         try {
             this.id = (int) (json.get("id"));
             this.createdAt = (long) (json.get("createdAt"));
             this.updatedAt = (long) (json.get("updatedAt"));
-            this.amount = (float) (json.get("amount"));
+            this.amount = (Double) (json.get("amount"));
 
-            this.prizePoolId = Long.parseLong((String)json.get("prizePoolId"));
-            this.donorId = Long.parseLong((String)json.get("donorId"));
+            if ( json.has("prizePool")) {
+                if ( json.get("prizePool") instanceof Number ) {
+                    this.prizePoolId = Long.parseLong(json.get("prizePool").toString());
+                }
+                else {
+                    JSONObject prizePoolJson = (JSONObject) (json.get("prizePool"));
+                    this.prizePool = new PrizePool(prizePoolJson, false);
+                }
 
-            JSONObject prizePoolJson = (JSONObject) (json.get("prizePool"));
-            this.prizePool = new PrizePool(prizePoolJson, false);
+            }
+            if ( json.has("donor")) {
+                if ( json.get("donor") instanceof Number ) {
+                    this.donorId = Long.parseLong(json.get("donor").toString());
+                }
+                else {
+                    JSONObject donorJson = (JSONObject) (json.get("donor"));
+                    this.donor = new User(donorJson, false);
+                }
 
-            JSONObject donorJson = (JSONObject) (json.get("donor"));
-            this.donor = new User(donorJson, false);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
