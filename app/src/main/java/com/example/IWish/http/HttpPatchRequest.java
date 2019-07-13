@@ -1,6 +1,7 @@
 package com.example.IWish.http;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -76,6 +77,7 @@ class HttpPatchRequest extends HttpRequest {
 
     public AsyncTask<String, Void, String> exec(String url, Map<String, String> paramsMap) throws UnsupportedEncodingException {
         String paramsStr = buildParams(paramsMap);
+        Log.i("USER", paramsStr);
         return execute(url, paramsStr);
     }
 }

@@ -5,7 +5,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorControlNormal">#3F51B5</item>
-        <item name="colorControlActivated">#FFFFFF</item>
+        <item name="colorControlActivated">#838383</item>
         <item name="colorControlHighlight">#FF5722</item>
     </style>
 

@@ -24,6 +24,7 @@ public class DashboardListAdapter extends ArrayAdapter<RowWishList> {
 
     static class ViewHolder {
         ImageView imageView;
+        ImageView owned;
         ImageView locked;
         TextView textView;
         TextView idView;
@@ -37,6 +38,7 @@ public class DashboardListAdapter extends ArrayAdapter<RowWishList> {
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.list_of_wishlist, null);
             holder = new ViewHolder();
+            holder.owned = (ImageView) convertView.findViewById(R.id.owned);
             holder.locked = (ImageView) convertView.findViewById(R.id.locked);
             holder.textView = (TextView) convertView.findViewById(R.id.wishlistText);
             holder.idView = (TextView) convertView.findViewById(R.id.wishlistId);
@@ -51,6 +53,13 @@ public class DashboardListAdapter extends ArrayAdapter<RowWishList> {
         }else{
             holder.locked.setVisibility(View.VISIBLE);
         }
+
+        if(rowWishList.isOwned()){
+            holder.owned.setVisibility(View.VISIBLE);
+        }else{
+            holder.owned.setVisibility(View.INVISIBLE);
+        }
+
         holder.textView.setText(rowWishList.getTitle());
         holder.idView.setText(String.valueOf(rowWishList.getId()));
 
