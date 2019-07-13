@@ -66,4 +66,12 @@ public class UserApi extends BaseApi<User> {
     public User addCategory(long id, long fk) throws InterruptedException, ExecutionException, JSONException {
         return super.addRelation(id, "categories", fk);
     }
+
+    public User addManagedPrizePool(long id, long fk) throws InterruptedException, ExecutionException, JSONException {
+        return super.addRelation(id, "managedPrizePools", fk);
+    }
+
+    public User addDonation(long id, long fk) throws InterruptedException, ExecutionException, JSONException {
+        return super.addRelation(id, "donations", fk);
+    }
 }

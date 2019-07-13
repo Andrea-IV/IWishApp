@@ -22,7 +22,7 @@ public abstract class Model {
 
     public abstract JSONObject getModelDefinition() throws JSONException;
 
-    public Map<String, String> toMap() {
+    public Map<String, String> toMap(boolean includeRelations) {
         Map<String, String> map = new HashMap<>();
         for ( Field field : getClass().getDeclaredFields() ) {
             try {
@@ -31,15 +31,17 @@ public abstract class Model {
 
                 if ( fieldValue != null && !("serialVersionUID".equals(fieldName)) ) {
                     if ( fieldValue instanceof List ) {
-                        List<?> fieldValueList = (List)fieldValue;
-                        if ( !fieldValueList.isEmpty() && fieldValueList.get(0) instanceof Model ) {
-                            List<Long> valuesLongs = new ArrayList<>(fieldValueList.size());
-                            for (Object o : fieldValueList) {
-                                Model inst = (Model)o;
-                                Long longValue = inst.id;
-                                valuesLongs.add(longValue);
+                        if ( includeRelations ) {
+                            List<?> fieldValueList = (List) fieldValue;
+                            if (!fieldValueList.isEmpty() && fieldValueList.get(0) instanceof Model) {
+                                List<Long> valuesLongs = new ArrayList<>(fieldValueList.size());
+                                for (Object o : fieldValueList) {
+                                    Model inst = (Model) o;
+                                    Long longValue = inst.id;
+                                    valuesLongs.add(longValue);
+                                }
+                                map.put(fieldName, valuesLongs.toString());
                             }
-                            map.put(fieldName, valuesLongs.toString());
                         }
                     }
                     else {
@@ -52,5 +54,9 @@ public abstract class Model {
         }
 
         return map;
+    }
+
+    public Map<String, String> toMap() {
+        return toMap(true);
     }
 }

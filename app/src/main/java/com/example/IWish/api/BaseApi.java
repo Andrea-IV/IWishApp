@@ -60,7 +60,7 @@ public abstract class BaseApi<T extends Model> {
     }
 
     public T updateAttributes(long id, T newAttributes) throws UnsupportedEncodingException, ExecutionException, InterruptedException, JSONException {
-        String result = this.http.patch(this.actionUrl + id, newAttributes.toMap()).get();
+        String result = this.http.patch(this.actionUrl + id, newAttributes.toMap(false)).get();
         JSONObject jsonObject = new JSONObject(result);
         T responseInst = createFromJson(jsonObject);
         return responseInst;
