@@ -21,37 +21,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/example"
+            app:border_width="2dp"
+            app:border_color="@color/ghost"/>
+
         <TextView
-            android:id="@+id/itemTitle"
-            android:layout_width="300dp"
+            android:id="@+id/userTitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="20sp"
             android:textAllCaps="false"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="20sp"
             android:textStyle="bold"
             app:fontFamily="@font/comfortaalight" />
 
         <TextView
-            android:id="@+id/itemId"
+            android:id="@+id/userId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="end|center_vertical">
-            <de.hdodenhof.circleimageview.CircleImageView
-                xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/itemImage"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:src="@drawable/default_image"
-                app:border_width="2dp"
-                app:border_color="@color/ghost"/>
-
-        </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

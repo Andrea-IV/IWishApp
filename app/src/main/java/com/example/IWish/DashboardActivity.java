@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 
 import com.example.IWish.Model.User;
 import com.example.IWish.Model.Wishlist;
+import com.example.IWish.api.UserApi;
 import com.example.IWish.api.WishlistApi;
 
 import org.json.JSONException;
@@ -40,6 +42,7 @@ public class DashboardActivity extends AppCompatActivity {
     Context context;
     List<RowWishList> rowWishLists;
     User user;
+    List<User> userList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +84,7 @@ public class DashboardActivity extends AppCompatActivity {
                 b.putString("TITLE", wishlist.name);
                 b.putString("WISHLIST", wishlist.toString());
                 b.putString("USER", user.toString());
+                b.putString("OWNED", Boolean.toString(rowWishLists.get(position).isOwned()));
                 intent.putExtras(b);
 
                 startActivity(intent);
@@ -97,7 +101,34 @@ public class DashboardActivity extends AppCompatActivity {
                     final View swipedView = listview.getChildAt(position);
                     ImageView image = swipedView.findViewById(R.id.expand);
 
-                    if(String.valueOf(image.getTag()).equals("expand")){
+                    if (swipedView.findViewById(R.id.owned).getVisibility() == View.INVISIBLE && String.valueOf(image.getTag()).equals("expand")) {
+                        swipedView.findViewById(R.id.deleteWishlist).setVisibility(View.VISIBLE);
+
+                        Animation animation = new TranslateAnimation(0, -100,0, 0);
+                        animation.setFillAfter(true);
+                        animation.setDuration(100);
+
+                        swipedView.findViewById(R.id.wishButtonLayout).startAnimation(animation);
+                        ValueAnimator fadeIn = ValueAnimator.ofFloat(0f, 1f);
+                        fadeIn.setDuration(500);
+                        fadeIn.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                            @Override
+                            public void onAnimationUpdate(ValueAnimator animation) {
+                                float alpha = (float) animation.getAnimatedValue();
+                                swipedView.findViewById(R.id.deleteWishlist).setAlpha(alpha);
+                            }
+                        });
+                        fadeIn.start();
+                        image.setImageResource(R.drawable.reduce);
+                        image.setTag("reduce");
+
+                        swipedView.findViewById(R.id.deleteWishlist).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                showDeleteWishlist(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position);
+                            }
+                        });
+                    } else if(String.valueOf(image.getTag()).equals("expand")){
                         swipedView.findViewById(R.id.deleteWishlist).setVisibility(View.VISIBLE);
                         swipedView.findViewById(R.id.modifyWishlist).setVisibility(View.VISIBLE);
                         swipedView.findViewById(R.id.inviteUser).setVisibility(View.VISIBLE);
@@ -124,6 +155,26 @@ public class DashboardActivity extends AppCompatActivity {
                         image.setImageResource(R.drawable.reduce);
                         image.setTag("reduce");
 
+                        swipedView.findViewById(R.id.inviteUser).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                UserApi userApi = new UserApi();
+                                try {
+                                    userList = userApi.findAll();
+                                    showShareList(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position);
+                                /*for(int i = 0; i < userList.size(); i++){
+                                    if()
+                                }*/
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+
                         swipedView.findViewById(R.id.modifyWishlist).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -148,7 +199,27 @@ public class DashboardActivity extends AppCompatActivity {
                     final View swipedView = listview.getChildAt(position);
                     ImageView image = swipedView.findViewById(R.id.expand);
 
-                    if(String.valueOf(image.getTag()).equals("reduce")) {
+                    if(swipedView.findViewById(R.id.owned).getVisibility() == View.INVISIBLE && String.valueOf(image.getTag()).equals("reduce")) {
+                        Animation animation = new TranslateAnimation(-100, 0, 0, 0);
+                        animation.setFillAfter(true);
+                        animation.setDuration(100);
+
+                        swipedView.findViewById(R.id.wishButtonLayout).startAnimation(animation);
+                        ValueAnimator fadeOut = ValueAnimator.ofFloat(1f, 0f);
+                        fadeOut.setDuration(50);
+                        fadeOut.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                            @Override
+                            public void onAnimationUpdate(ValueAnimator animation) {
+                                float alpha = (float) animation.getAnimatedValue();
+                                swipedView.findViewById(R.id.deleteWishlist).setAlpha(alpha);
+                            }
+                        });
+                        fadeOut.start();
+                        image.setImageResource(R.drawable.expand);
+                        image.setTag("expand");
+
+                        swipedView.findViewById(R.id.deleteWishlist).setVisibility(View.GONE);
+                    }else if(String.valueOf(image.getTag()).equals("reduce")) {
                         Animation animation = new TranslateAnimation(-500, 0, 0, 0);
                         animation.setFillAfter(true);
                         animation.setDuration(300);
@@ -176,6 +247,69 @@ public class DashboardActivity extends AppCompatActivity {
                         swipedView.findViewById(R.id.facebookShare).setVisibility(View.GONE);
                     }
                 }
+            }
+        });
+    }
+
+    public void showShareList(View view, final int idWishlist, String name, final int position){
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = inflater.inflate(R.layout.share_list_user, null);
+        popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new OnSwipeTouchListener(DashboardActivity.this) {
+            public void onSwipeBottom() {
+                popupWindow.dismiss();
+            }
+            public void onSwipeTop() {
+            }
+        });
+
+        ((TextView)popupView.findViewById(R.id.textView)).setText(getString(R.string.share_user_title) + " \"" + name + "\"");
+
+        ListView userListView = popupView.findViewById(R.id.listOfUsers);
+        UserListAdapter adapter = new UserListAdapter(this, R.layout.list_of_user, userList);
+        userListView.setAdapter(adapter);
+
+        userListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, final long id) {
+                final User user = userList.get(position);
+                userList.remove(position);
+
+                new Thread(new Runnable() {
+                    public void run() {
+                        UserApi userApi = new UserApi();
+                        WishlistApi wishlitApi = new WishlistApi();
+                        try {
+                            user.email = "test@mailmail.fr";
+                            //user.concernedWishlists.add(wishlitApi.findById(idWishlist));
+                            Log.i("USER", user.toString());
+                            userApi.updateAttributes(user.id, user);
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+
+                ListView userListView = popupView.findViewById(R.id.listOfUsers);
+                UserListAdapter adapter = new UserListAdapter(context, R.layout.list_of_user, userList);
+                userListView.setAdapter(adapter);
             }
         });
     }
@@ -377,7 +511,11 @@ public class DashboardActivity extends AppCompatActivity {
         rowWishLists = new ArrayList<>();
         int i = 0;
         for(Wishlist wishlist: user.wishlists){
-            rowWishLists.add(new RowWishList(wishlist));
+            rowWishLists.add(new RowWishList(wishlist, true));
+            i++;
+        }
+        for(Wishlist wishlist: user.concernedWishlists){
+            rowWishLists.add(new RowWishList(wishlist, false));
             i++;
         }
     }

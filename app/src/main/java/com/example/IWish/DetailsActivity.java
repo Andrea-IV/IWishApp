@@ -34,6 +34,7 @@ public class DetailsActivity extends AppCompatActivity {
 
     private Wishlist wishlist;
     private User user;
+    private Boolean owned;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +45,12 @@ public class DetailsActivity extends AppCompatActivity {
         if(b != null){
             TextView title = findViewById(R.id.title);
             title.setText(b.getString("TITLE"));
+            owned = Boolean.valueOf(b.getString("OWNED"));
+
+            if(!owned){
+                findViewById(R.id.imageView2).setVisibility(View.INVISIBLE);
+            }
+
             try {
                 wishlist = new Wishlist(new JSONObject(b.getString("WISHLIST")));
                 user = new User(new JSONObject(b.getString("USER")));
@@ -78,7 +85,7 @@ public class DetailsActivity extends AppCompatActivity {
     public void goToDetails(View view, final Item item){
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = inflater.inflate(R.layout.activity_product, null);
+        View popupView = inflater.inflate(R.layout.display_product, null);
         popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
 
         // create the popup window
@@ -102,24 +109,29 @@ public class DetailsActivity extends AppCompatActivity {
                 }
             });
         }
+        if(this.owned){
+            popupView.findViewById(R.id.delete).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    deleteItem(item);
+                    callItem();
+                    loadItem();
+                    popupWindow.dismiss();
+                }
+            });
 
-        popupView.findViewById(R.id.delete).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deleteItem(item);
-                callItem();
-                loadItem();
-                popupWindow.dismiss();
-            }
-        });
+            popupView.findViewById(R.id.modify).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    popupWindow.dismiss();
+                    showModifyItem(v, item.id, item.name, item.description, item.amount, item.link);
+                }
+            });
+        }else{
+            popupView.findViewById(R.id.modify).setVisibility(View.INVISIBLE);
+            popupView.findViewById(R.id.delete).setVisibility(View.INVISIBLE);
+        }
 
-        popupView.findViewById(R.id.modify).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupWindow.dismiss();
-                showModifyItem(v, item.id, item.name, item.description, item.amount, item.link);
-            }
-        });
 
         popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
 

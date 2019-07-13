@@ -2,7 +2,9 @@ package com.example.IWish;
 
 import android.animation.ValueAnimator;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -60,6 +62,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        String tokenSaved = sharedPref.getString(getString(R.string.saved_facebook_token), "");
+
+        if(AccessToken.getCurrentAccessToken() != null){
+            Log.i("FACEBOOKLOGIN", AccessToken.getCurrentAccessToken().toString());
+            GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                @Override
+                public void onCompleted(JSONObject object, GraphResponse response) {
+                    isAlreadyActive(object);
+                }
+            });
+
+            Bundle parameters = new Bundle();
+            parameters.putString("fields", "id,email,first_name,last_name");
+            request.setParameters(parameters);
+            request.executeAsync();
+        }else{
+            Log.i("FACEBOOKLOGIN", tokenSaved);
+        }
+
         View loginAction = findViewById(R.id.loginButton);
         loginAction.setVisibility(View.INVISIBLE);
 
@@ -98,6 +120,10 @@ public class MainActivity extends AppCompatActivity {
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
+                SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString(getString(R.string.saved_facebook_token), loginResult.getAccessToken().toString());
+                editor.apply();
                 mDialog = new ProgressDialog(MainActivity.this);
                 mDialog.setMessage("Retrieving data...");
                 mDialog.show();
@@ -126,22 +152,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-        if(AccessToken.getCurrentAccessToken() != null){
-            GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-                @Override
-                public void onCompleted(JSONObject object, GraphResponse response) {
-                    Log.i("FACEBOOK", object.toString());
-                    Log.i("FACEBOOK", response.toString());
-                    isAlreadyActive(object);
-                }
-            });
-
-            Bundle parameters = new Bundle();
-            parameters.putString("fields", "id,email,first_name,last_name");
-            request.setParameters(parameters);
-            request.executeAsync();
-        }
     }
 
     private void isAlreadyActive(JSONObject object) {
