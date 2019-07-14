@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
@@ -28,6 +29,8 @@ import com.example.IWish.Model.User;
 import com.example.IWish.Model.Wishlist;
 import com.example.IWish.api.UserApi;
 import com.example.IWish.api.WishlistApi;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.widget.ShareDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -155,6 +158,39 @@ public class DashboardActivity extends AppCompatActivity {
                         fadeIn.start();
                         image.setImageResource(R.drawable.reduce);
                         image.setTag("reduce");
+
+                        swipedView.findViewById(R.id.facebookShare).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                ShareLinkContent content = new ShareLinkContent.Builder()
+                                        .setContentUrl(Uri.parse("https://developers.facebook.com"))
+                                        .build();
+                                if(ShareDialog.canShow(ShareLinkContent.class)){
+                                    ShareDialog shareDialog = new ShareDialog(DashboardActivity.this);
+                                    shareDialog.show(content);
+                                }
+                                new Thread(new Runnable() {
+                                    public void run() {
+                                        try {
+                                            if(swipedView.findViewById(R.id.locked).getVisibility() == View.VISIBLE){
+                                                WishlistApi wishlistApi = new WishlistApi();
+                                                user.wishlists.get(position).isPublic = true;
+                                                wishlistApi.updateAttributes(user.wishlists.get(position).id, user.wishlists.get(position));
+                                                swipedView.findViewById(R.id.locked).setVisibility(View.INVISIBLE);
+                                            }
+                                        } catch (ExecutionException e) {
+                                            e.printStackTrace();
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        } catch (UnsupportedEncodingException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }).start();
+                            }
+                        });
 
                         swipedView.findViewById(R.id.inviteUser).setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -309,19 +345,13 @@ public class DashboardActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     public void run() {
                         UserApi userApi = new UserApi();
-                        WishlistApi wishlitApi = new WishlistApi();
                         try {
-                            user.email = "test@mailmail.fr";
-                            //user.concernedWishlists.add(wishlitApi.findById(idWishlist));
-                            Log.i("USER", user.toString());
-                            userApi.updateAttributes(user.id, user);
+                            userApi.addConcerned(user.id, idWishlist);
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (JSONException e) {
-                            e.printStackTrace();
-                        } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
                     }

@@ -67,6 +67,10 @@ public class UserApi extends BaseApi<User> {
         return super.addRelation(id, "categories", fk);
     }
 
+    public User addConcerned(long id, long fk) throws InterruptedException, ExecutionException, JSONException {
+        return super.addRelation(id, "concernedWishlists", fk);
+    }
+
     public User addManagedPrizePool(long id, long fk) throws InterruptedException, ExecutionException, JSONException {
         return super.addRelation(id, "managedPrizePools", fk);
     }

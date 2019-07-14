@@ -26,6 +26,7 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginResult;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         String tokenSaved = sharedPref.getString(getString(R.string.saved_facebook_token), "");
+
+        FacebookSdk.sdkInitialize(this.getApplicationContext());
 
         if(AccessToken.getCurrentAccessToken() != null){
             Log.i("FACEBOOKLOGIN", AccessToken.getCurrentAccessToken().toString());
