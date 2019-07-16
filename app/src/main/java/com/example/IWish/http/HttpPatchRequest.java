@@ -77,7 +77,6 @@ class HttpPatchRequest extends HttpRequest {
 
     public AsyncTask<String, Void, String> exec(String url, Map<String, String> paramsMap) throws UnsupportedEncodingException {
         String paramsStr = buildParams(paramsMap);
-        Log.i("USER", paramsStr);
         return execute(url, paramsStr);
     }
 }

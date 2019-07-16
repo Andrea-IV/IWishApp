@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(this.getApplicationContext());
 
         if(AccessToken.getCurrentAccessToken() != null){
-            Log.i("FACEBOOKLOGIN", AccessToken.getCurrentAccessToken().toString());
             GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
                 @Override
                 public void onCompleted(JSONObject object, GraphResponse response) {
@@ -80,8 +79,6 @@ public class MainActivity extends AppCompatActivity {
             parameters.putString("fields", "id,email,first_name,last_name");
             request.setParameters(parameters);
             request.executeAsync();
-        }else{
-            Log.i("FACEBOOKLOGIN", tokenSaved);
         }
 
         View loginAction = findViewById(R.id.loginButton);

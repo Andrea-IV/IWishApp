@@ -17,6 +17,7 @@ import android.webkit.URLUtil;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -539,6 +540,14 @@ public class DetailsActivity extends AppCompatActivity {
 
             ((TextView)popupView.findViewById(R.id.endDateValue)).setText(mDay + "/" + mMonth + "/" + mYear);
 
+            ImageView showButton = popupView.findViewById(R.id.showIcon);
+            showButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showDonationList(popupView);
+                }
+            });
+
             Button createButton = popupView.findViewById(R.id.createDonation);
             createButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -641,6 +650,68 @@ public class DetailsActivity extends AppCompatActivity {
                 popupWindow.dismiss();
             }
             public void onSwipeTop() {
+            }
+        });
+    }
+
+    public void showDonationList(final View view){
+        view.findViewById(R.id.firstRow).setVisibility(View.GONE);
+        view.findViewById(R.id.secondRow).setVisibility(View.GONE);
+        view.findViewById(R.id.thirdRow).setVisibility(View.GONE);
+        view.findViewById(R.id.errorText).setVisibility(View.GONE);
+        view.findViewById(R.id.createDonation).setVisibility(View.GONE);
+        view.findViewById(R.id.listLayout).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.showIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCreateDonation(view);
+            }
+        });
+
+        DonationApi donationApi = new DonationApi();
+        try {
+            List<Donation> donationList = donationApi.findAll();
+            List<Donation> finalList = new ArrayList<>();
+            Double total = 0.0;
+
+            for(Donation donation: donationList){
+                if(donation.concernedPrizePool.id == wishlist.prizePool.id){
+                    finalList.add(donation);
+                    total += donation.amount;
+                }
+            }
+
+            String string = getResources().getString(R.string.donation_list);
+            String string2 = String.valueOf(total);
+
+            ((TextView)view.findViewById(R.id.title)).setText(string + " " + string2 + "€");
+
+            ListView listview = view.findViewById(R.id.listOfDonations);
+            DonationListAdapter adapter = new DonationListAdapter(this,R.layout.list_of_donation,finalList);
+            listview.setAdapter(adapter);
+
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showCreateDonation(final View view){
+        ((TextView)view.findViewById(R.id.title)).setText(R.string.donation_creation);
+        view.findViewById(R.id.firstRow).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.secondRow).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.thirdRow).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.errorText).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.createDonation).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.listLayout).setVisibility(View.GONE);
+
+        view.findViewById(R.id.showIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDonationList(view);
             }
         });
     }

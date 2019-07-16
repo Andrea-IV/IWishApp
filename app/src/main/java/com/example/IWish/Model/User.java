@@ -75,15 +75,6 @@ public class User extends Model {
                     this.managedPrizePools.add(prizePool);
                 }
 
-                JSONArray donationsJson = (JSONArray) (json.get("donations"));
-                int nbDonations = donationsJson.length();
-                this.donations = new ArrayList<>(nbDonations);
-                for (int i = 0; i < nbDonations; i++) {
-                    JSONObject donationJson = (JSONObject) (donationsJson.get(i));
-                    Donation donation = new Donation(donationJson, false);
-                    this.donations.add(donation);
-                }
-
                 JSONArray wishlistsJson = (JSONArray) (json.get("wishlists"));
                 int nbWishlists = wishlistsJson.length();
                 this.wishlists = new ArrayList<>(nbWishlists);

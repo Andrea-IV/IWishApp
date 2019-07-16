@@ -64,4 +64,5 @@
     <string name="empty_donation">Donation amount is empty</string>
     <string name="price_wrong_format">Donation amount has a wrong format</string>
     <string name="donation_accepted">Donation accepted</string>
+    <string name="donation_list">Donation list</string>
 </resources>

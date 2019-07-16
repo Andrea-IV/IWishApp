@@ -17,7 +17,6 @@ public class Donation extends Model {
     }
 
     public Donation(JSONObject json, boolean includeRelations) {
-        Log.i("TAGTAG", "json="+json);
         try {
             this.id = (int) (json.get("id"));
             this.createdAt = (long) (json.get("createdAt"));
