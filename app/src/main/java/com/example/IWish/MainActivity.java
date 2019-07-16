@@ -6,13 +6,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -20,14 +16,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.IWish.Model.Category;
-import com.example.IWish.Model.Item;
 import com.example.IWish.Model.User;
 import com.example.IWish.api.AuthenticationApi;
-import com.example.IWish.api.CategoryApi;
 import com.example.IWish.api.LoginResponse;
 import com.example.IWish.api.UserApi;
-import com.example.IWish.api.WishlistApi;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -61,54 +53,14 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int PAYPAL_REQUEST_CODE = 7171;
-
-    private static PayPalConfiguration paypalConfig = new PayPalConfiguration()
-            .environment(PayPalConfiguration.ENVIRONMENT_SANDBOX)
-            .clientId(ApiConfig.PAYPAL_CLIENT_ID);
-
-    String amount = "12.84";
-
     CallbackManager callbackManager;
     ProgressDialog mDialog;
     ImageView imgAvatar;
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if ( requestCode == PAYPAL_REQUEST_CODE ) {
-            if ( resultCode == RESULT_OK ) {
-                PaymentConfirmation confirmation = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
-                if ( confirmation != null ) {
-                    try {
-                        String paymentDetails = confirmation.toJSONObject().toString(4);
-                        startActivity(new Intent(this, PaymentDetails.class)
-                            .putExtra("PaymentDetails", paymentDetails)
-                            .putExtra("PaymentAmount", amount));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            else if ( resultCode == Activity.RESULT_CANCELED ){
-                Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show();
-            }
-        }
-        else if ( resultCode == PaymentActivity.RESULT_EXTRAS_INVALID ) {
-            Toast.makeText(this, "Invalid", Toast.LENGTH_SHORT).show();
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Start Paypal service
-        Intent intent = new Intent(this, PayPalService.class);
-        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, paypalConfig);
-        startService(intent);
 
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         String tokenSaved = sharedPref.getString(getString(R.string.saved_facebook_token), "");
@@ -522,18 +474,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void tryLogin(String login, String password){
-        PayPalPayment payPalPayment = new PayPalPayment(
-                new BigDecimal(String.valueOf(amount)),
-                "EUR",
-                "Faire un don",
-                PayPalPayment.PAYMENT_INTENT_SALE);
-        Intent intent = new Intent(this, PaymentActivity.class);
-        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, paypalConfig);
-        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payPalPayment);
-        startActivityForResult(intent, PAYPAL_REQUEST_CODE);
-
-
-        /*AuthenticationApi authApi = new AuthenticationApi();
+        AuthenticationApi authApi = new AuthenticationApi();
         try {
             LoginResponse res = authApi.login(login, password);
             Intent intent = new Intent(this, DashboardActivity.class);
@@ -557,6 +498,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 }

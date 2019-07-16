@@ -36,7 +36,7 @@ public class PaymentDetails extends AppCompatActivity {
         try {
             txtId.setText(response.getString("id"));
             txtStatus.setText(response.getString("state"));
-            txtAmount.setText("$"+paymentAmount);
+            txtAmount.setText(paymentAmount + "€");
         } catch (JSONException e) {
             e.printStackTrace();
         }

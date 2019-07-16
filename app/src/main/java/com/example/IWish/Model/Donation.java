@@ -8,10 +8,10 @@ import org.json.JSONObject;
 public class Donation extends Model {
 
     public Double amount;
-    public PrizePool prizePool;
-    public Long prizePoolId;
-    public User donor;
-    public Long donorId;
+    public PrizePool concernedPrizePool;
+    public Long prizePool;
+    public User concernedDonor;
+    public Long donor;
 
     public Donation() {
     }
@@ -22,25 +22,25 @@ public class Donation extends Model {
             this.id = (int) (json.get("id"));
             this.createdAt = (long) (json.get("createdAt"));
             this.updatedAt = (long) (json.get("updatedAt"));
-            this.amount = (Double) (json.get("amount"));
+            this.amount = Double.parseDouble(json.get("amount").toString());
 
             if ( json.has("prizePool")) {
                 if ( json.get("prizePool") instanceof Number ) {
-                    this.prizePoolId = Long.parseLong(json.get("prizePool").toString());
+                    this.prizePool = Long.parseLong(json.get("prizePool").toString());
                 }
                 else {
                     JSONObject prizePoolJson = (JSONObject) (json.get("prizePool"));
-                    this.prizePool = new PrizePool(prizePoolJson, false);
+                    this.concernedPrizePool = new PrizePool(prizePoolJson, false);
                 }
 
             }
             if ( json.has("donor")) {
                 if ( json.get("donor") instanceof Number ) {
-                    this.donorId = Long.parseLong(json.get("donor").toString());
+                    this.donor = Long.parseLong(json.get("donor").toString());
                 }
                 else {
                     JSONObject donorJson = (JSONObject) (json.get("donor"));
-                    this.donor = new User(donorJson, false);
+                    this.concernedDonor = new User(donorJson, false);
                 }
 
             }
@@ -55,10 +55,10 @@ public class Donation extends Model {
 
     public Donation(Donation other) {
         this.amount = other.amount;
+        this.concernedPrizePool = other.concernedPrizePool;
         this.prizePool = other.prizePool;
-        this.prizePoolId = other.prizePoolId;
+        this.concernedDonor = other.concernedDonor;
         this.donor = other.donor;
-        this.donorId = other.donorId;
     }
 
     @Override

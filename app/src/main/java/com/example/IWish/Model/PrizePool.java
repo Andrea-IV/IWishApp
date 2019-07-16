@@ -1,5 +1,7 @@
 package com.example.IWish.Model;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,10 +13,10 @@ public class PrizePool extends Model {
 
     public Long endDate;
     public Boolean closed;
-    public Wishlist wishlist;
-    public Long wishlistId;
-    public User manager;
-    public Long managerId;
+    public Wishlist concernedWishlist;
+    public Long wishlist;
+    public User concernedManager;
+    public Long manager;
     public List<Donation> donations;
 
     public PrizePool() {
@@ -28,14 +30,30 @@ public class PrizePool extends Model {
             this.endDate = (long) (json.get("endDate"));
             this.closed = (boolean) (json.get("closed"));
 
-            this.wishlistId = Long.decode((String)json.get("wishlistId"));
-            this.managerId = Long.decode((String)json.get("managerId"));
+            if(json.get("wishlist") instanceof Integer){
+                this.wishlist = Long.valueOf((Integer)json.get("wishlist"));
+            }else{
+                JSONObject wishlistJson = (JSONObject) (json.get("wishlist"));
+                this.concernedWishlist = new Wishlist(wishlistJson, false);
+            }
 
-            JSONObject wishlistJson = (JSONObject) (json.get("wishlist"));
-            this.wishlist = new Wishlist(wishlistJson, false);
+            if(json.get("manager") instanceof Integer){
+                this.manager = Long.valueOf((Integer)json.get("manager"));
+            }else{
+                JSONObject managerJson = (JSONObject) (json.get("manager"));
+                this.concernedManager = new User(managerJson, false);
+            }
 
-            JSONObject managerJson = (JSONObject) (json.get("manager"));
-            this.manager = new User(managerJson, false);
+            if(json.has("wishlistId")){
+                this.wishlist = Long.decode((String)json.get("wishlistId"));
+            }else if(!(json.get("wishlist") instanceof Integer)){
+                this.wishlist = this.concernedWishlist.id;
+            }
+            if(json.has("managerId")){
+                this.manager = Long.decode((String)json.get("managerId"));
+            }else if(!(json.get("manager") instanceof Integer)){
+                this.manager = this.concernedManager.id;
+            }
 
             if ( includeRelations ) {
                 JSONArray donationsJson = (JSONArray)(json.get("donations"));
@@ -60,9 +78,9 @@ public class PrizePool extends Model {
         this.endDate = other.endDate;
         this.closed = other.closed;
         this.wishlist = other.wishlist;
-        this.wishlistId = other.wishlistId;
+        this.concernedWishlist = other.concernedWishlist;
         this.manager = other.manager;
-        this.managerId = other.managerId;
+        this.manager = other.manager;
 
         this.donations = new ArrayList<>(other.donations.size());
         for ( Donation donation : other.donations )
