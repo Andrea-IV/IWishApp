@@ -29,7 +29,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'de.hdodenhof:circleimageview:1.2.1'
+    // jsoup HTML parser library @ https://jsoup.org/
     implementation 'org.jsoup:jsoup:1.12.1'
 
     implementation 'com.paypal.sdk:paypal-android-sdk:2.15.3'
+    //implementation 'com.braintreepayments.api:braintree:2.+'
+
+    implementation 'net.gotev:uploadservice:2.1'
 }

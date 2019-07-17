@@ -1,5 +1,7 @@
 package com.example.IWish.Model;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,6 +50,7 @@ public class User extends Model {
     }
 
     public User(JSONObject json, boolean includeRelations) {
+        Log.i("TAGTAG", "json="+json);
         try {
             this.id = (int) (json.get("id"));
             this.createdAt = (long) (json.get("createdAt"));
