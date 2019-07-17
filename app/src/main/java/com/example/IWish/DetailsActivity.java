@@ -1,7 +1,11 @@
 package com.example.IWish;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,39 +17,130 @@ import android.webkit.URLUtil;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.IWish.Model.Donation;
 import com.example.IWish.Model.Item;
+import com.example.IWish.Model.PrizePool;
 import com.example.IWish.Model.User;
 import com.example.IWish.Model.Wishlist;
 import com.example.IWish.api.AmazonApi;
+import com.example.IWish.api.DonationApi;
 import com.example.IWish.api.ItemApi;
+import com.example.IWish.api.PrizePoolApi;
 import com.example.IWish.api.UserApi;
+import com.facebook.CallbackManager;
+import com.paypal.android.sdk.payments.PayPalConfiguration;
+import com.paypal.android.sdk.payments.PayPalPayment;
+import com.paypal.android.sdk.payments.PayPalService;
+import com.paypal.android.sdk.payments.PaymentActivity;
+import com.paypal.android.sdk.payments.PaymentConfirmation;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DetailsActivity extends AppCompatActivity {
+
+    public static final int PAYPAL_REQUEST_CODE = 7171;
+
+    private static PayPalConfiguration paypalConfig = new PayPalConfiguration()
+            .environment(PayPalConfiguration.ENVIRONMENT_SANDBOX)
+            .clientId(ApiConfig.PAYPAL_CLIENT_ID);
 
     private Wishlist wishlist;
     private User user;
     private Boolean owned;
+    private int positionSelected = -1;
+    final static String DATE_FORMAT = "dd/MM/yyyy";
+    private String amount;
+    CallbackManager callbackManager;
+    final String regExp = "[0-9]+([,.][0-9]{1,2})?";
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if ( requestCode == PAYPAL_REQUEST_CODE ) {
+            if ( resultCode == RESULT_OK ) {
+                PaymentConfirmation confirmation = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
+                if ( confirmation != null ) {
+                    try {
+                        final String paymentDetails = confirmation.toJSONObject().toString(4);
+
+                        new Thread(new Runnable() {
+                            public void run() {
+                                try {
+                                    JSONObject jsonObject = new JSONObject(paymentDetails);
+                                    JSONObject response = jsonObject.getJSONObject("response");
+
+                                    if(response.getString("state").equals("approved")){
+                                        DonationApi donationApi = new DonationApi();
+                                        Donation donation = new Donation();
+                                        donation.amount = Double.parseDouble(amount);
+                                        donation.donor = user.id;
+                                        donation.prizePool = wishlist.prizePool.id;
+                                        donationApi.create(donation);
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (UnsupportedEncodingException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+
+                        startActivity(new Intent(this, PaymentDetails.class)
+                                .putExtra("PaymentDetails", paymentDetails)
+                                .putExtra("PaymentAmount", amount));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            else if ( resultCode == Activity.RESULT_CANCELED ){
+                Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else if ( resultCode == PaymentActivity.RESULT_EXTRAS_INVALID ) {
+            Toast.makeText(this, "Invalid", Toast.LENGTH_SHORT).show();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
+
+        // Start Paypal service
+        Intent intent = new Intent(this, PayPalService.class);
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, paypalConfig);
+        startService(intent);
+
+        callbackManager = CallbackManager.Factory.create();
 
         Bundle b = getIntent().getExtras();
         if(b != null){
@@ -61,6 +156,24 @@ public class DetailsActivity extends AppCompatActivity {
                 wishlist = new Wishlist(new JSONObject(b.getString("WISHLIST")));
                 user = new User(new JSONObject(b.getString("USER")));
                 wishlist.user = user;
+
+                PrizePoolApi prizePoolApi = new PrizePoolApi();
+                try {
+                    List<PrizePool> prizePools = prizePoolApi.findAll();
+                    for(PrizePool prizePool: prizePools){
+                        if(prizePool.wishlist == wishlist.id){
+                            wishlist.prizePool = prizePool;
+                            break;
+                        }
+                    }
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
                 callItem();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -256,6 +369,240 @@ public class DetailsActivity extends AppCompatActivity {
         }
     }
 
+    public void showPrizePoolUser(View view){
+        if(wishlist.prizePool == null && user.id == wishlist.owner){
+            view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+            // inflate the layout of the popup window
+            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            final View popupView = inflater.inflate(R.layout.show_prizepool, null);
+            popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+            // create the popup window
+            int width = LinearLayout.LayoutParams.MATCH_PARENT;
+            int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            boolean focusable = true; // lets taps outside the popup also dismiss it
+            final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+            popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+            ((TextView)popupView.findViewById(R.id.title)).setText(R.string.create_title);
+
+            final Context context = this;
+            final long id = this.wishlist.id;
+
+            UserApi userApi = new UserApi();
+            try {
+                List<User> userList = new LinkedList<User>();
+                for(User user: userApi.findAll()){
+                    for(Wishlist list: user.concernedWishlists){
+                        if(list.id == id){
+                            userList.add(user);
+                        }
+                    }
+                }
+                final ListView userListView = popupView.findViewById(R.id.listOfUsers);
+                UserListAdapter adapter = new UserListAdapter(context, R.layout.show_users, userList);
+                userListView.setAdapter(adapter);
+                if(positionSelected != -1){
+                    positionSelected = -1;
+                }
+
+                userListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, final long id) {
+                        if(positionSelected == -1){
+                            positionSelected = position;
+                            userListView.getChildAt(positionSelected).setBackgroundColor(getResources().getColor(R.color.blueBackground));
+                        }else{
+                            userListView.getChildAt(positionSelected).setBackgroundColor(Color.TRANSPARENT);
+                            positionSelected = position;
+                            userListView.getChildAt(positionSelected).setBackgroundColor(getResources().getColor(R.color.blueBackground));
+                        }
+                    }
+                });
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            Button createButton = popupView.findViewById(R.id.createPrizePool);
+            createButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+                    String endDate = ((EditText)popupView.findViewById(R.id.endDate)).getText().toString();
+                    if(isDateValid(endDate)){
+                        if(positionSelected == -1){
+                            ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.no_user_selected);
+                        }else if(endDate.isEmpty()){
+                            ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.no_date_selected);
+                        }else{
+                            try {
+                                Date date = new SimpleDateFormat(DATE_FORMAT, Locale.FRANCE).parse(endDate);
+
+                                if(date.after(new Date())){
+                                    final PrizePool prizePool = new PrizePool();
+                                    prizePool.endDate = date.getTime();
+                                    prizePool.closed = false;
+                                    prizePool.wishlist = wishlist.id;
+                                    prizePool.manager = Long.parseLong(((TextView)((ListView)popupView.findViewById(R.id.listOfUsers)).getChildAt(positionSelected).findViewById(R.id.userId)).getText().toString());
+
+                                    new Thread(new Runnable() {
+                                        public void run() {
+                                            PrizePoolApi prizePoolApi = new PrizePoolApi();
+                                            try {
+                                                wishlist.prizePool = prizePoolApi.create(prizePool);
+                                            } catch (ExecutionException e) {
+                                                ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.problem_creating_prizepool);
+                                                e.printStackTrace();
+                                            } catch (InterruptedException e) {
+                                                ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.problem_creating_prizepool);
+                                                e.printStackTrace();
+                                            } catch (JSONException e) {
+                                                ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.problem_creating_prizepool);
+                                                e.printStackTrace();
+                                            } catch (UnsupportedEncodingException e) {
+                                                ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.problem_creating_prizepool);
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).start();
+                                    popupWindow.dismiss();
+                                }else{
+                                    ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.date_passed);
+                                }
+                            } catch (ParseException e) {
+                                ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.wrong_format);
+                            }
+                        }
+                    }else{
+                        ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.wrong_format);
+                    }
+                }
+            });
+
+            // dismiss the popup window when touched
+            popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+                public void onSwipeBottom() {
+                    popupWindow.dismiss();
+                }
+                public void onSwipeTop() {
+                }
+            });
+        }else if(wishlist.prizePool == null){
+            view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+            // inflate the layout of the popup window
+            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            final View popupView = inflater.inflate(R.layout.no_prizepool, null);
+            popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+            // create the popup window
+            int width = LinearLayout.LayoutParams.MATCH_PARENT;
+            int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            boolean focusable = true; // lets taps outside the popup also dismiss it
+            final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+            popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+            // dismiss the popup window when touched
+            popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+                public void onSwipeBottom() {
+                    popupWindow.dismiss();
+                }
+                public void onSwipeTop() {
+                }
+            });
+        }else{
+            view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+            // inflate the layout of the popup window
+            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            final View popupView = inflater.inflate(R.layout.donation_prizepool, null);
+            popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+            // create the popup window
+            int width = LinearLayout.LayoutParams.MATCH_PARENT;
+            int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            boolean focusable = true; // lets taps outside the popup also dismiss it
+            final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+            popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+            ((TextView)popupView.findViewById(R.id.managerValue)).setText(wishlist.prizePool.concernedManager.firstName + " " + wishlist.prizePool.concernedManager.lastName);
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(wishlist.prizePool.endDate);
+
+            int mYear = calendar.get(Calendar.YEAR);
+            int mMonth = calendar.get(Calendar.MONTH);
+            int mDay = calendar.get(Calendar.DAY_OF_MONTH);
+
+            ((TextView)popupView.findViewById(R.id.endDateValue)).setText(mDay + "/" + mMonth + "/" + mYear);
+
+            ImageView showButton = popupView.findViewById(R.id.showIcon);
+            showButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showDonationList(popupView);
+                }
+            });
+
+            Button createButton = popupView.findViewById(R.id.createDonation);
+            createButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+                    String donation = ((EditText)popupView.findViewById(R.id.donation_amount)).getText().toString();
+                    if(!donation.equals("")){
+                        final Pattern pattern = Pattern.compile(regExp);
+
+                        Matcher matcher = pattern.matcher(donation);
+                        if(matcher.matches()){
+                            amount = donation;
+                            PayPalPayment payPalPayment = new PayPalPayment(
+                                    new BigDecimal(amount),
+                                    "EUR",
+                                    "Faire un don",
+                                    PayPalPayment.PAYMENT_INTENT_SALE);
+                            Intent intent = new Intent(DetailsActivity.this, PaymentActivity.class);
+                            intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, paypalConfig);
+                            intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payPalPayment);
+                            startActivityForResult(intent, PAYPAL_REQUEST_CODE);
+                        }else{
+                            ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.price_wrong_format);
+                        }
+                    }else{
+                        ((TextView)popupView.findViewById(R.id.errorText)).setText(R.string.empty_donation);
+                    }
+                }
+            });
+
+
+
+            // dismiss the popup window when touched
+            popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+                public void onSwipeBottom() {
+                    popupWindow.dismiss();
+                }
+                public void onSwipeTop() {
+                }
+            });
+        }
+    }
+
+    public static boolean isDateValid(String date)
+    {
+        try {
+            DateFormat df = new SimpleDateFormat(DATE_FORMAT);
+            df.setLenient(false);
+            df.parse(date);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
     public void showSharedUser(View view){
         view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
         // inflate the layout of the popup window
@@ -303,6 +650,68 @@ public class DetailsActivity extends AppCompatActivity {
                 popupWindow.dismiss();
             }
             public void onSwipeTop() {
+            }
+        });
+    }
+
+    public void showDonationList(final View view){
+        view.findViewById(R.id.firstRow).setVisibility(View.GONE);
+        view.findViewById(R.id.secondRow).setVisibility(View.GONE);
+        view.findViewById(R.id.thirdRow).setVisibility(View.GONE);
+        view.findViewById(R.id.errorText).setVisibility(View.GONE);
+        view.findViewById(R.id.createDonation).setVisibility(View.GONE);
+        view.findViewById(R.id.listLayout).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.showIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCreateDonation(view);
+            }
+        });
+
+        DonationApi donationApi = new DonationApi();
+        try {
+            List<Donation> donationList = donationApi.findAll();
+            List<Donation> finalList = new ArrayList<>();
+            Double total = 0.0;
+
+            for(Donation donation: donationList){
+                if(donation.concernedPrizePool.id == wishlist.prizePool.id){
+                    finalList.add(donation);
+                    total += donation.amount;
+                }
+            }
+
+            String string = getResources().getString(R.string.donation_list);
+            String string2 = String.valueOf(total);
+
+            ((TextView)view.findViewById(R.id.title)).setText(string + " " + string2 + "€");
+
+            ListView listview = view.findViewById(R.id.listOfDonations);
+            DonationListAdapter adapter = new DonationListAdapter(this,R.layout.list_of_donation,finalList);
+            listview.setAdapter(adapter);
+
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showCreateDonation(final View view){
+        ((TextView)view.findViewById(R.id.title)).setText(R.string.donation_creation);
+        view.findViewById(R.id.firstRow).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.secondRow).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.thirdRow).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.errorText).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.createDonation).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.listLayout).setVisibility(View.GONE);
+
+        view.findViewById(R.id.showIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDonationList(view);
             }
         });
     }

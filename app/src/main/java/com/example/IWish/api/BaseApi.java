@@ -47,6 +47,7 @@ public abstract class BaseApi<T extends Model> {
 
     public T create(T instance) throws UnsupportedEncodingException, ExecutionException, InterruptedException, JSONException {
         String result = this.http.post(this.actionUrl, instance.toMap()).get();
+        Log.i("PROBLEM", result);
         JSONObject jsonObject = new JSONObject(result);
         T responseInst = createFromJson(jsonObject);
         return responseInst;

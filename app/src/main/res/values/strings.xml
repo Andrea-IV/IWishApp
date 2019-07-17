@@ -45,4 +45,24 @@
     <string name="saved_facebook_token">com.example.IWish.facebook_saved_token_key</string>
     <string name="share_user_title">Invite user in </string>
     <string name="shared_user_title">Users seeing this Wishlist</string>
+    <string name="enter_end_date">Enter the end date</string>
+    <string name="choose_manager">Select the manager of the list</string>
+    <string name="create_prizepool">Create</string>
+    <string name="create_title">Create PrizePool</string>
+    <string name="no_user_selected">No user selected</string>
+    <string name="no_date_selected">No date entered</string>
+    <string name="wrong_format">Date is in the wrong format dd/mm/yyyy</string>
+    <string name="date_passed">Date is in the past</string>
+    <string name="problem_creating_prizepool">There has been a problem with the creation</string>
+    <string name="title_no_prizepool">No Prizepool for this Wishlist</string>
+    <string name="title_donation_prizepool">Make a Donation</string>
+    <string name="end_date">End date</string>
+    <string name="manager">Manager of the prizepool</string>
+    <string name="donation_amount">Donation amount</string>
+    <string name="donation_creation">Make a donation</string>
+    <string name="eur_symbol">€</string>
+    <string name="empty_donation">Donation amount is empty</string>
+    <string name="price_wrong_format">Donation amount has a wrong format</string>
+    <string name="donation_accepted">Donation accepted</string>
+    <string name="donation_list">Donation list</string>
 </resources>
