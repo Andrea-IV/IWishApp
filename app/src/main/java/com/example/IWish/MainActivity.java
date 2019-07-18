@@ -208,7 +208,6 @@ public class MainActivity extends AppCompatActivity {
         /*try{
             imgAvatar = findViewById(R.id.logo);
             URL profile_picture = new URL("https://graph.facebook.com/" + object.getString("id") + "/picture?width=250&height=250");
-
             Picasso.with(this).load(profile_picture.toString()).into(imgAvatar);
         } catch (MalformedURLException e) {
             e.printStackTrace();
