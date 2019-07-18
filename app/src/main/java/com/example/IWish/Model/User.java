@@ -50,24 +50,23 @@ public class User extends Model {
     }
 
     public User(JSONObject json, boolean includeRelations) {
-        Log.i("TAGTAG", "json="+json);
         try {
             this.id = (int) (json.get("id"));
-            this.createdAt = (long) (json.get("createdAt"));
-            this.updatedAt = (long) (json.get("updatedAt"));
+            this.createdAt = (long) json.get("createdAt");
+            this.updatedAt = (long) json.get("updatedAt");
             this.email = (String) (json.get("email"));
             this.firstName = (String) (json.get("firstName"));
             this.lastName = (String) (json.get("lastName"));
 
             if ( includeRelations ) {
-                JSONArray categoriesJson = (JSONArray) (json.get("categories"));
+                /*JSONArray categoriesJson = (JSONArray) (json.get("categories"));
                 int nbCategories = categoriesJson.length();
                 this.categories = new ArrayList<>(nbCategories);
                 for (int i = 0; i < nbCategories; i++) {
                     JSONObject categoryJson = (JSONObject) (categoriesJson.get(i));
                     Category category = new Category(categoryJson, false);
                     this.categories.add(category);
-                }
+                }*/
 
                 /*JSONArray managedPrizePoolsJson = (JSONArray) (json.get("managedPrizePools"));
                 int nbManagedPrizePools = managedPrizePoolsJson.length();

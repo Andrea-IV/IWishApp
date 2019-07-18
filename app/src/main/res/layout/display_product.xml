@@ -13,6 +13,18 @@
         android:background="@drawable/layout_bg">
 
         <ImageView
+            android:id="@+id/link"
+            android:layout_width="70dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/return_bg"
+            app:srcCompat="@drawable/linksymbol"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
             android:id="@+id/imageView"
             android:layout_width="350dp"
             android:layout_height="250dp"
@@ -21,6 +33,108 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/default_image" />
+
+        <ImageView
+            android:id="@+id/comparatorImage"
+            android:layout_width="70dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/return_bg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/comparator" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/price_comparator"
+            android:textColor="@android:color/black"
+            android:textIsSelectable="true"
+            android:textSize="25sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/amazonLayout"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:gravity="start|center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/amazonImage"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/amazon"
+                app:border_color="@color/ghost"
+                app:border_width="2dp" />
+
+            <TextView
+                android:id="@+id/amazonTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20sp"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:fontFamily="@font/comfortaalight" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/commerceLayout"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:gravity="start|center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/amazonLayout">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/commerceImage"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/commerce"
+                app:border_color="@color/ghost"
+                app:border_width="2dp" />
+
+            <TextView
+                android:id="@+id/commerceTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20sp"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:fontFamily="@font/comfortaalight" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/textTitle"
@@ -35,19 +149,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-        <Button
-            android:id="@+id/link"
-            android:layout_width="wrap_content"
-            android:layout_height="35dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:background="@drawable/return_bg"
-            android:text="@string/default_link"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textTitle" />
-
         <TextView
             android:id="@+id/description"
             android:layout_width="0dp"
@@ -61,7 +162,7 @@
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/link" />
+            app:layout_constraintTop_toBottomOf="@+id/textTitle" />
 
         <TextView
             android:id="@+id/price"

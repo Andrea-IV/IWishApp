@@ -67,4 +67,5 @@
     <string name="donation_list">Donation list</string>
     <string name="logout">Logout</string>
     <string name="categories_title">Centers of interest</string>
+    <string name="price_comparator">Price on different site</string>
 </resources>

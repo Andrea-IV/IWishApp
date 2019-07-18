@@ -9,6 +9,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -40,17 +43,15 @@ import com.paypal.android.sdk.payments.PaymentActivity;
 import com.paypal.android.sdk.payments.PaymentConfirmation;
 import com.squareup.picasso.Picasso;
 
+import net.gotev.uploadservice.MultipartUploadRequest;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -60,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String AUTH_TYPE = "rerequest";
     CallbackManager callbackManager;
     ProgressDialog mDialog;
-    ImageView imgAvatar;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -205,15 +205,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        /*try{
-            imgAvatar = findViewById(R.id.logo);
-            URL profile_picture = new URL("https://graph.facebook.com/" + object.getString("id") + "/picture?width=250&height=250");
-            Picasso.with(this).load(profile_picture.toString()).into(imgAvatar);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
     }
 
     public static String randomPassword() {

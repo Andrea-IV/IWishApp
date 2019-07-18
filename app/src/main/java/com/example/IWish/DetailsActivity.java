@@ -1,11 +1,20 @@
 package com.example.IWish;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +43,7 @@ import com.example.IWish.api.DonationApi;
 import com.example.IWish.api.ItemApi;
 import com.example.IWish.api.PrizePoolApi;
 import com.example.IWish.api.UserApi;
+import com.example.IWish.http.HttpClient;
 import com.facebook.CallbackManager;
 import com.paypal.android.sdk.payments.PayPalConfiguration;
 import com.paypal.android.sdk.payments.PayPalPayment;
@@ -41,9 +51,12 @@ import com.paypal.android.sdk.payments.PayPalService;
 import com.paypal.android.sdk.payments.PaymentActivity;
 import com.paypal.android.sdk.payments.PaymentConfirmation;
 
+import net.gotev.uploadservice.MultipartUploadRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -55,6 +68,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,6 +76,8 @@ import java.util.regex.Pattern;
 public class DetailsActivity extends AppCompatActivity {
 
     public static final int PAYPAL_REQUEST_CODE = 7171;
+    public static final int IMAGE_REQUEST_CODE = 3;
+    public static final int STORAGE_PERMISSION_CODE = 123;
 
     private static PayPalConfiguration paypalConfig = new PayPalConfiguration()
             .environment(PayPalConfiguration.ENVIRONMENT_SANDBOX)
@@ -73,8 +89,12 @@ public class DetailsActivity extends AppCompatActivity {
     private int positionSelected = -1;
     final static String DATE_FORMAT = "dd/MM/yyyy";
     private String amount;
-    CallbackManager callbackManager;
+    private CallbackManager callbackManager;
     final String regExp = "[0-9]+([,.][0-9]{1,2})?";
+    private Uri filePath;
+    private ImageView imageView;
+    private Bitmap bitmap;
+    private ProgressDialog mDialog;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -125,6 +145,16 @@ public class DetailsActivity extends AppCompatActivity {
         }
         else if ( resultCode == PaymentActivity.RESULT_EXTRAS_INVALID ) {
             Toast.makeText(this, "Invalid", Toast.LENGTH_SHORT).show();
+        }
+        if (requestCode == IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            filePath = data.getData();
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
+                imageView.setImageBitmap(bitmap);
+                imageView.setVisibility(View.VISIBLE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
@@ -201,10 +231,52 @@ public class DetailsActivity extends AppCompatActivity {
         });
     }
 
+    public void showComparator(final View view){
+        view.findViewById(R.id.link).setVisibility(View.GONE);
+        view.findViewById(R.id.imageView).setVisibility(View.GONE);
+        view.findViewById(R.id.textTitle).setVisibility(View.GONE);
+        view.findViewById(R.id.description).setVisibility(View.GONE);
+        view.findViewById(R.id.price).setVisibility(View.GONE);
+        view.findViewById(R.id.delete).setVisibility(View.GONE);
+        view.findViewById(R.id.modify).setVisibility(View.GONE);
+
+        view.findViewById(R.id.textView).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.amazonLayout).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.commerceLayout).setVisibility(View.VISIBLE);
+
+        view.findViewById(R.id.comparatorImage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideComparator(view);
+            }
+        });
+    }
+
+    public void hideComparator(final View view){
+        view.findViewById(R.id.link).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.imageView).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.textTitle).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.description).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.price).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.delete).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.modify).setVisibility(View.VISIBLE);
+
+        view.findViewById(R.id.textView).setVisibility(View.GONE);
+        view.findViewById(R.id.amazonLayout).setVisibility(View.GONE);
+        view.findViewById(R.id.commerceLayout).setVisibility(View.GONE);
+
+        view.findViewById(R.id.comparatorImage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showComparator(view);
+            }
+        });
+    }
+
     public void goToDetails(View view, final Item item){
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = inflater.inflate(R.layout.display_product, null);
+        final View popupView = inflater.inflate(R.layout.display_product, null);
         popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
 
         // create the popup window
@@ -215,7 +287,7 @@ public class DetailsActivity extends AppCompatActivity {
 
         ((TextView)popupView.findViewById(R.id.textTitle)).setText(item.name);
         ((TextView)popupView.findViewById(R.id.description)).setText(item.description);
-        ((TextView)popupView.findViewById(R.id.price)).setText("Price : " + String.format("%.2f", item.amount));
+        ((TextView)popupView.findViewById(R.id.price)).setText("Price : " + String.format("%.2f", item.amount) + " €");
 
         if(item.link.isEmpty()){
             popupView.findViewById(R.id.link).setVisibility(View.GONE);
@@ -251,6 +323,53 @@ public class DetailsActivity extends AppCompatActivity {
             popupView.findViewById(R.id.delete).setVisibility(View.INVISIBLE);
         }
 
+        popupView.findViewById(R.id.comparatorImage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                HttpClient httpClient = new HttpClient();
+
+                try {
+                    String result = httpClient.get(ApiConfig.COMPARATOR_URL + "?string=" + ((TextView) popupView.findViewById(R.id.textTitle)).getText().toString()).get();
+                    final JSONObject jsonObject;
+                    jsonObject = new JSONObject(result);
+
+                    ((TextView)popupView.findViewById(R.id.amazonTitle)).setText("Price : " + jsonObject.get("priceAmazon"));
+                    popupView.findViewById(R.id.amazonLayout).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent viewIntent = null;
+                            try {
+                                viewIntent = new Intent("android.intent.action.VIEW", Uri.parse(jsonObject.get("linkAmazon").toString()));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            startActivity(viewIntent);
+                        }
+                    });
+
+                    ((TextView)popupView.findViewById(R.id.commerceTitle)).setText("Price : " + jsonObject.get("priceCommerce"));
+                    popupView.findViewById(R.id.commerceLayout).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent viewIntent = null;
+                            try {
+                                viewIntent = new Intent("android.intent.action.VIEW", Uri.parse(jsonObject.get("linkCommerce").toString()));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            startActivity(viewIntent);
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                showComparator(popupView);
+            }
+        });
 
         popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
 
@@ -603,6 +722,85 @@ public class DetailsActivity extends AppCompatActivity {
         }
     }
 
+    public void uploadImage(View view){
+        requestStoragePermission();
+        imageView = view.findViewById(R.id.uploadedImage);
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Complete action using"), IMAGE_REQUEST_CODE);
+    }
+
+    private void requestStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+            return;
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            //If the user has denied the permission previously your code will come to this block
+            //Here you can explain why you need this permission
+            //Explain here why you need this permission
+        }
+        //And finally ask for the permission
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+    }
+
+    //This method will be called when the user will tap on allow or deny
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        //Checking the request code of our request
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+
+            //If permission is granted
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Displaying a toast
+                Toast.makeText(this, "Permission granted now you can read the storage", Toast.LENGTH_LONG).show();
+            } else {
+                //Displaying another toast if permission is not granted
+                Toast.makeText(this, "Oops you just denied the permission", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    public void uploadMultipart() {
+        //String caption = etCaption.getText().toString().trim();
+
+        //getting the actual path of the image
+        String path = getPath(filePath);
+
+        //Uploading code
+        try {
+            String uploadId = UUID.randomUUID().toString();
+
+            //Creating a multi part request
+            new MultipartUploadRequest(this, uploadId, ApiConfig.SAVE_FILE_URL)
+                    .addFileToUpload(path, "image") //Adding file
+                    //.addParameter("caption", caption) //Adding text parameter to the request
+                    //.setNotificationConfig(new UploadNotificationConfig())
+                    .setMaxRetries(2)
+                    .startUpload(); //Starting the upload
+        } catch (Exception exc) {
+            Toast.makeText(this, exc.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public String getPath(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        String document_id = cursor.getString(0);
+        document_id = document_id.substring(document_id.lastIndexOf(":") + 1);
+        cursor.close();
+
+        cursor = getContentResolver().query(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                null, MediaStore.Images.Media._ID + " = ? ", new String[]{document_id}, null);
+        cursor.moveToFirst();
+        String path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+        cursor.close();
+
+        return path;
+    }
+
     public void showSharedUser(View view){
         view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
         // inflate the layout of the popup window
@@ -782,7 +980,7 @@ public class DetailsActivity extends AppCompatActivity {
                         try {
                             Item item = amazonApi.getItemFromUrl(link);
                             if(item != null){
-                                tryCreateProduct(item.name, "", item.amount.toString(), link, popupWindow);
+                                tryCreateProduct(item.name, ((EditText)popupView.findViewById(R.id.description)).getText().toString(), item.amount.toString(), link, popupWindow);
                             }else{
                                 ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.amazon_link_not_working);
                             }
@@ -799,6 +997,14 @@ public class DetailsActivity extends AppCompatActivity {
                 }
             }
         });
+
+        ImageView uploadImage = popupView.findViewById(R.id.uploadImage);
+        uploadImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                uploadImage(popupView);
+            }
+        });
     }
 
     private void tryCreateProduct(String productName, String description, String amount, String link, PopupWindow popupWindow){
@@ -811,7 +1017,7 @@ public class DetailsActivity extends AppCompatActivity {
         item.position = 0;
         item.wishlist = this.wishlist.id;
         try {
-
+            //uploadMultipart();
             wishlist.items.add(itemApi.create(item));
             loadItem();
             popupWindow.dismiss();
