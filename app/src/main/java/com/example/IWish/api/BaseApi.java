@@ -73,4 +73,11 @@ public abstract class BaseApi<T extends Model> {
         T inst = createFromJson(jsonObject);
         return inst;
     }
+
+    protected T deleteRelation(long id, String relation, long fk) throws JSONException, ExecutionException, InterruptedException {
+        String result = this.http.delete(this.actionUrl + id + "/" + relation + "/" + fk).get();
+        JSONObject jsonObject = new JSONObject(result);
+        T inst = createFromJson(jsonObject);
+        return inst;
+    }
 }

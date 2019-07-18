@@ -18,6 +18,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -25,10 +26,13 @@ import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.example.IWish.Model.Category;
 import com.example.IWish.Model.User;
 import com.example.IWish.Model.Wishlist;
+import com.example.IWish.api.CategoryApi;
 import com.example.IWish.api.UserApi;
 import com.example.IWish.api.WishlistApi;
+import com.facebook.login.LoginManager;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
 
@@ -39,6 +43,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class DashboardActivity extends AppCompatActivity {
@@ -46,6 +51,7 @@ public class DashboardActivity extends AppCompatActivity {
     Context context;
     List<RowWishList> rowWishLists;
     User user;
+    Boolean facebookLogin = false;
     List<User> userList;
 
     @Override
@@ -58,6 +64,7 @@ public class DashboardActivity extends AppCompatActivity {
         if(bundle != null){
             try {
                 this.user = new User(new JSONObject(bundle.getString("USER")));
+                this.facebookLogin = (bundle.getString("FACEBOOK")).equals("YES");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -129,7 +136,7 @@ public class DashboardActivity extends AppCompatActivity {
                         swipedView.findViewById(R.id.deleteWishlist).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                showDeleteWishlist(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position);
+                                showDeleteWishlist(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position, false);
                             }
                         });
                     } else if(String.valueOf(image.getTag()).equals("expand")){
@@ -241,7 +248,7 @@ public class DashboardActivity extends AppCompatActivity {
                         swipedView.findViewById(R.id.deleteWishlist).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                showDeleteWishlist(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position);
+                                showDeleteWishlist(v, Integer.parseInt(((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()), ((TextView)swipedView.findViewById(R.id.wishlistText)).getText().toString(), position, true);
                             }
                         });
                     }
@@ -307,6 +314,102 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
+    public void showMenu(View view){
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = inflater.inflate(R.layout.menu_users, null);
+        popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.left_in));
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+        int height = LinearLayout.LayoutParams.MATCH_PARENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        popupWindow.showAtLocation(view, Gravity.LEFT, 0, 0);
+
+        popupView.findViewById(R.id.btnLogout).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logout();
+            }
+        });
+
+        CategoryApi categoryApi = new CategoryApi();
+
+        try {
+            final List<Category> categoryList = categoryApi.findAll();
+            final ListView categoriesListView = popupView.findViewById(R.id.listOfCategories);
+            CategoriesListAdapter adapter = new CategoriesListAdapter(this, R.layout.list_of_categories, categoryList);
+            categoriesListView.setAdapter(adapter);
+
+            categoriesListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, final long id) {
+                    final Category category = categoryList.get(position);
+
+                    if(((CheckBox)categoriesListView.getChildAt(position)).isChecked()){
+                        Log.i("CATEGORIES", "creating");
+                        new Thread(new Runnable() {
+                            public void run() {
+                            UserApi userApi = new UserApi();
+                            try {
+                                userApi.addCategory(user.id, category.id);
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            }
+                        }).start();
+                    }else{
+                        Log.i("CATEGORIES", "deleting");
+                        new Thread(new Runnable() {
+                            public void run() {
+                            UserApi userApi = new UserApi();
+                            try {
+                                userApi.deleteCategory(user.id, category.id);
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            }
+                        }).start();
+                    }
+
+                }
+            });
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new OnSwipeTouchListener(DashboardActivity.this) {
+            public void onSwipeLeft(float x, float y) {
+                popupWindow.dismiss();
+            }
+            public void onSwipeTop() {
+            }
+        });
+    }
+
+    public void logout(){
+        if(facebookLogin){
+            LoginManager.getInstance().logOut();
+        }
+        Intent intent = new Intent(DashboardActivity.this, MainActivity.class);
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
     public void showShareList(View view, final int idWishlist, String name, final int position){
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -364,7 +467,7 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
-    public void showDeleteWishlist(View view, final int id, String name, final int position){
+    public void showDeleteWishlist(View view, final int id, String name, final int position, final boolean owner){
         // inflate the layout of the popup window
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View popupView = inflater.inflate(R.layout.delete_wishlist, null);
@@ -393,7 +496,11 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
-                tryDeleteWishlist(id, position);
+                if(owner){
+                    tryDeleteWishlist(id, position);
+                }else{
+                    tryDeleteConcernedWishlist(id, position);
+                }
                 popupWindow.dismiss();
             }
         });
@@ -544,7 +651,7 @@ public class DashboardActivity extends AppCompatActivity {
         WishlistApi wishlistApi = new WishlistApi();
         try {
             wishlistApi.delete(id);
-            user.wishlists.remove(position + 1);
+            user.wishlists.remove(position);
             loadWishList();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -557,16 +664,28 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
+    public void tryDeleteConcernedWishlist(int id, int position){
+        UserApi userApi = new UserApi();
+        try {
+            userApi.deleteConcerned(user.id, id);
+            user.wishlists.remove(position);
+            loadWishList();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void displayWishList(){
         rowWishLists = new ArrayList<>();
-        int i = 0;
         for(Wishlist wishlist: user.wishlists){
             rowWishLists.add(new RowWishList(wishlist, true));
-            i++;
         }
         for(Wishlist wishlist: user.concernedWishlists){
             rowWishLists.add(new RowWishList(wishlist, false));
-            i++;
         }
     }
 

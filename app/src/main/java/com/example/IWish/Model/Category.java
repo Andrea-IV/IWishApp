@@ -21,8 +21,6 @@ public class Category extends Model {
     public Category(JSONObject json, boolean includeRelations) {
         try {
             this.id = (int) (json.get("id"));
-            this.createdAt = (long) (json.get("createdAt"));
-            this.updatedAt = (long) (json.get("updatedAt"));
             this.name = (String) (json.get("name"));
 
             if ( includeRelations ) {

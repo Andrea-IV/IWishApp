@@ -6,9 +6,13 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -53,17 +57,26 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String AUTH_TYPE = "rerequest";
     CallbackManager callbackManager;
     ProgressDialog mDialog;
     ImageView imgAvatar;
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        String tokenSaved = sharedPref.getString(getString(R.string.saved_facebook_token), "");
 
         FacebookSdk.sdkInitialize(this.getApplicationContext());
 
@@ -115,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
         LoginButton loginButton = (LoginButton)findViewById(R.id.login_button);
         loginButton.setReadPermissions(Arrays.asList("public_profile", "email"));
+        loginButton.setAuthType(AUTH_TYPE);
 
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -143,12 +157,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancel() {
-
+                Log.i("error", "error");
             }
 
             @Override
             public void onError(FacebookException error) {
-
+                Log.i("error", "error");
             }
         });
     }
@@ -169,15 +183,16 @@ public class MainActivity extends AppCompatActivity {
                 User user = userApi.createUser(object.getString("email"), randomPassword(),  object.getString("first_name"), object.getString("last_name"));
                 Bundle bundle = new Bundle();
                 bundle.putString("USER", user.toString());
+                bundle.putString("FACEBOOK", "YES");
                 intent.putExtras(bundle);
 
                 startActivity(intent);
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }else{
                 User user = new User((JSONObject)response.get(0));
-                Log.i("FACEBOOKLOGIN", user.toString());
                 Bundle bundle = new Bundle();
                 bundle.putString("USER", user.toString());
+                bundle.putString("FACEBOOK", "YES");
                 intent.putExtras(bundle);
 
                 startActivity(intent);
@@ -214,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         return randomStringBuilder.toString();
     }
 
-    /*private void printKeyHash() {
+    private void printKeyHash() {
         try{
             PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
             for(Signature signature: info.signatures){
@@ -227,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-    }*/
+    }
 
     public void showLoginInput(View view) {
         View emailInput = findViewById(R.id.emailInput);
@@ -442,6 +457,7 @@ public class MainActivity extends AppCompatActivity {
             if(user != null){
                 Bundle bundle = new Bundle();
                 bundle.putString("USER", user.toString());
+                bundle.putString("FACEBOOK", "NO");
                 intent.putExtras(bundle);
 
                 startActivity(intent);
@@ -478,6 +494,7 @@ public class MainActivity extends AppCompatActivity {
             if(res.status == 200){
                 Bundle bundle = new Bundle();
                 bundle.putString("USER", res.user.toString());
+                bundle.putString("FACEBOOK", "NO");
                 intent.putExtras(bundle);
 
                 startActivity(intent);

@@ -65,4 +65,6 @@
     <string name="price_wrong_format">Donation amount has a wrong format</string>
     <string name="donation_accepted">Donation accepted</string>
     <string name="donation_list">Donation list</string>
+    <string name="logout">Logout</string>
+    <string name="categories_title">Centers of interest</string>
 </resources>

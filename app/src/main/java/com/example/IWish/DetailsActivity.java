@@ -411,11 +411,11 @@ public class DetailsActivity extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, View view, int position, final long id) {
                         if(positionSelected == -1){
                             positionSelected = position;
-                            userListView.getChildAt(positionSelected).setBackgroundColor(getResources().getColor(R.color.blueBackground));
+                            userListView.getChildAt(positionSelected).setBackgroundColor(getResources().getColor(R.color.selected));
                         }else{
                             userListView.getChildAt(positionSelected).setBackgroundColor(Color.TRANSPARENT);
                             positionSelected = position;
-                            userListView.getChildAt(positionSelected).setBackgroundColor(getResources().getColor(R.color.blueBackground));
+                            userListView.getChildAt(positionSelected).setBackgroundColor(getResources().getColor(R.color.selected));
                         }
                     }
                 });

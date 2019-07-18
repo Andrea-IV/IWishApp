@@ -66,14 +66,14 @@ public class User extends Model {
                     this.categories.add(category);
                 }
 
-                JSONArray managedPrizePoolsJson = (JSONArray) (json.get("managedPrizePools"));
+                /*JSONArray managedPrizePoolsJson = (JSONArray) (json.get("managedPrizePools"));
                 int nbManagedPrizePools = managedPrizePoolsJson.length();
                 this.managedPrizePools = new ArrayList<>(nbManagedPrizePools);
                 for (int i = 0; i < nbManagedPrizePools; i++) {
                     JSONObject managedPrizePoolJson = (JSONObject) (managedPrizePoolsJson.get(i));
                     PrizePool prizePool = new PrizePool(managedPrizePoolJson, false);
                     this.managedPrizePools.add(prizePool);
-                }
+                }*/
 
                 JSONArray wishlistsJson = (JSONArray) (json.get("wishlists"));
                 int nbWishlists = wishlistsJson.length();
