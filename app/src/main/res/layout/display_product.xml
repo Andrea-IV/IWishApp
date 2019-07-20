@@ -13,18 +13,6 @@
         android:background="@drawable/layout_bg">
 
         <ImageView
-            android:id="@+id/link"
-            android:layout_width="70dp"
-            android:layout_height="50dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/return_bg"
-            app:srcCompat="@drawable/linksymbol"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
             android:id="@+id/imageView"
             android:layout_width="350dp"
             android:layout_height="250dp"
@@ -45,6 +33,18 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/comparator" />
+
+        <ImageView
+            android:id="@+id/link"
+            android:layout_width="70dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/return_bg"
+            app:srcCompat="@drawable/linksymbol"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView"
