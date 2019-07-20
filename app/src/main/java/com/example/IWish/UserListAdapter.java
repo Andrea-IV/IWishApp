@@ -14,6 +14,8 @@ import com.example.IWish.Model.User;
 
 import java.util.List;
 
+import static com.example.IWish.ApiConfig.IMAGES_URL;
+
 public class UserListAdapter extends ArrayAdapter<User> {
     private Context context;
 
@@ -47,6 +49,13 @@ public class UserListAdapter extends ArrayAdapter<User> {
 
         holder.titleView.setText("#" + user.id + " " + user.firstName + " " + user.lastName);
         holder.idView.setText(String.valueOf(user.id));
+
+        new DownloadImageTask(holder.imageView)
+                .execute(IMAGES_URL + "pp_" + user.id + ".jpg");
+
+        if(holder.imageView.getDrawable() == null){
+            holder.imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.example));
+        }
 
         return convertView;
     }

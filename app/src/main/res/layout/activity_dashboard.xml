@@ -45,6 +45,7 @@
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="70dp"
+            android:visibility="gone"
             android:focusableInTouchMode="true"
             android:background="@color/ghost">
 
@@ -64,8 +65,7 @@
 
             <EditText
                 android:id="@+id/editText"
-                android:layout_width="250dp"
-                android:maxWidth="250dp"
+                android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
@@ -76,6 +76,7 @@
                 android:textColor="@android:color/white"
                 android:textColorHint="@android:color/white"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/searchLogo"
                 app:layout_constraintTop_toTopOf="parent" />
         </android.support.constraint.ConstraintLayout>
