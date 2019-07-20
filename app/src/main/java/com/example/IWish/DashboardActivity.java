@@ -59,8 +59,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -532,28 +535,16 @@ public class DashboardActivity extends AppCompatActivity {
         boolean focusable = true; // lets taps outside the popup also dismiss it
         final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
 
+        final ListView categoriesListView = popupView.findViewById(R.id.listOfCategories);
+        final List<Category> categoryList;
+
         popupWindow.showAtLocation(view, Gravity.LEFT, 0, 0);
-
-        popupView.findViewById(R.id.btnLogout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logout();
-            }
-        });
-
-        popupView.findViewById(R.id.btnProfile).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupWindow.dismiss();
-                showModifyUser(view);
-            }
-        });
 
         CategoryApi categoryApi = new CategoryApi();
 
         try {
-            final List<Category> categoryList = categoryApi.findAll();
-            final ListView categoriesListView = popupView.findViewById(R.id.listOfCategories);
+            categoryList = categoryApi.findAll();
+
             CategoriesListAdapter adapter = new CategoriesListAdapter(this, R.layout.list_of_categories, categoryList, user);
             categoriesListView.setAdapter(adapter);
         } catch (ExecutionException e) {
@@ -564,9 +555,87 @@ public class DashboardActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        popupView.findViewById(R.id.btnLogout).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                user.categories = new ArrayList<>();
+                for(int i = 0; i < categoriesListView.getChildCount(); i++){
+                    if(((CheckBox)categoriesListView.getChildAt(i).findViewById(R.id.categoryCheck)).isChecked()){
+                        final int value = i;
+                        new Thread(new Runnable() {
+                            public void run() {
+                                CategoryApi categoryApi = new CategoryApi();
+                                try {
+                                    String string = ((TextView)categoriesListView.getChildAt(value).findViewById(R.id.categoryId)).getText().toString();
+                                    user.categories.add(categoryApi.findById(Integer.parseInt(string)));
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+                    }
+                }
+                logout();
+            }
+        });
+
+        popupView.findViewById(R.id.btnProfile).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                user.categories = new ArrayList<>();
+                for(int i = 0; i < categoriesListView.getChildCount(); i++){
+                    if(((CheckBox)categoriesListView.getChildAt(i).findViewById(R.id.categoryCheck)).isChecked()){
+                        final int value = i;
+                        new Thread(new Runnable() {
+                            public void run() {
+                                CategoryApi categoryApi = new CategoryApi();
+                                try {
+                                    String string = ((TextView)categoriesListView.getChildAt(value).findViewById(R.id.categoryId)).getText().toString();
+                                    user.categories.add(categoryApi.findById(Integer.parseInt(string)));
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+                    }
+                }
+                popupWindow.dismiss();
+                showModifyUser(view);
+            }
+        });
+
         // dismiss the popup window when touched
         popupView.setOnTouchListener(new OnSwipeTouchListener(DashboardActivity.this) {
             public void onSwipeLeft(float x, float y) {
+                user.categories = new ArrayList<>();
+                for(int i = 0; i < categoriesListView.getChildCount(); i++){
+                    if(((CheckBox)categoriesListView.getChildAt(i).findViewById(R.id.categoryCheck)).isChecked()){
+                        final int value = i;
+                        new Thread(new Runnable() {
+                            public void run() {
+                                CategoryApi categoryApi = new CategoryApi();
+                                try {
+                                    String string = ((TextView)categoriesListView.getChildAt(value).findViewById(R.id.categoryId)).getText().toString();
+                                    user.categories.add(categoryApi.findById(Integer.parseInt(string)));
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+                    }
+                }
                 popupWindow.dismiss();
             }
             public void onSwipeTop() {

@@ -40,10 +40,8 @@ public class PrizePool extends Model {
             if(json.get("manager") instanceof Integer){
                 this.manager = Long.valueOf((Integer)json.get("manager"));
             }else{
-                if(json.get("manager").toString().equals("null")){
-                    JSONObject managerJson = (JSONObject) json.get("manager");
-                    this.concernedManager = new User(managerJson, false);
-                }
+                JSONObject managerJson = (JSONObject) json.get("manager");
+                this.concernedManager = new User(managerJson, false);
             }
 
             if(json.has("wishlistId")){

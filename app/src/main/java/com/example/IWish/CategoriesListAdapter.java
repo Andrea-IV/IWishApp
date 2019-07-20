@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 
 public class CategoriesListAdapter extends ArrayAdapter<Category> {
     private Context context;
-    private User user;
+    public User user;
 
     public CategoriesListAdapter(Context context, int vg, List<Category> rowItemList, User user){
         super(context,vg, rowItemList);
@@ -34,6 +34,7 @@ public class CategoriesListAdapter extends ArrayAdapter<Category> {
 
     static class ViewHolder {
         CheckBox checkBox;
+        TextView textView;
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -46,6 +47,7 @@ public class CategoriesListAdapter extends ArrayAdapter<Category> {
             convertView = mInflater.inflate(R.layout.list_of_categories, null);
             holder = new CategoriesListAdapter.ViewHolder();
             holder.checkBox = (CheckBox) convertView.findViewById(R.id.categoryCheck);
+            holder.textView = (TextView) convertView.findViewById(R.id.categoryId);
             convertView.setTag(holder);
             for(Category userCategory: user.categories){
                 if(userCategory.id == category.id){
@@ -57,6 +59,7 @@ public class CategoriesListAdapter extends ArrayAdapter<Category> {
         }
 
         holder.checkBox.setText(category.name);
+        holder.textView.setText(String.valueOf(category.id));
 
         final CategoriesListAdapter.ViewHolder finalHolder = holder;
 
@@ -68,7 +71,7 @@ public class CategoriesListAdapter extends ArrayAdapter<Category> {
                         public void run() {
                             UserApi userApi = new UserApi();
                             try {
-                                userApi.addCategory(user.id, category.id);
+                                user = userApi.addCategory(user.id, category.id);
                             } catch (ExecutionException e) {
                                 e.printStackTrace();
                             } catch (InterruptedException e) {
@@ -83,7 +86,7 @@ public class CategoriesListAdapter extends ArrayAdapter<Category> {
                         public void run() {
                             UserApi userApi = new UserApi();
                             try {
-                                userApi.deleteCategory(user.id, category.id);
+                                user = userApi.deleteCategory(user.id, category.id);
                             } catch (ExecutionException e) {
                                 e.printStackTrace();
                             } catch (InterruptedException e) {
