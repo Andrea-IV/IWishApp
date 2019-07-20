@@ -6,7 +6,6 @@ import com.example.IWish.Model.Wishlist;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ExecutionException;
 
 public class WishlistApi extends BaseApi<Wishlist> {
