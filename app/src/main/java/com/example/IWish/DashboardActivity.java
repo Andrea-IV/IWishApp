@@ -1,11 +1,22 @@
 package com.example.IWish;
 
+import android.Manifest;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.util.DisplayMetrics;
@@ -25,6 +36,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.IWish.Model.Category;
 import com.example.IWish.Model.User;
@@ -32,33 +44,47 @@ import com.example.IWish.Model.Wishlist;
 import com.example.IWish.api.CategoryApi;
 import com.example.IWish.api.UserApi;
 import com.example.IWish.api.WishlistApi;
+import com.facebook.CallbackManager;
 import com.facebook.login.LoginManager;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
 
+import net.gotev.uploadservice.MultipartUploadRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
+import static com.example.IWish.ApiConfig.IMAGES_URL;
+
 public class DashboardActivity extends AppCompatActivity {
+    public static final int IMAGE_REQUEST_CODE = 3;
+    public static final int STORAGE_PERMISSION_CODE = 123;
 
     Context context;
     List<RowWishList> rowWishLists;
     User user;
     Boolean facebookLogin = false;
     List<User> userList;
+    ImageView imageView;
+    Uri filePath;
+    CallbackManager callbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
         context = this;
+        callbackManager = CallbackManager.Factory.create();
 
         Bundle bundle = getIntent().getExtras();
         if(bundle != null){
@@ -70,6 +96,22 @@ public class DashboardActivity extends AppCompatActivity {
             }
         }
         loadWishList();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            filePath = data.getData();
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
+                imageView.setImageBitmap(bitmap);
+                imageView.setVisibility(View.VISIBLE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -314,7 +356,172 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
-    public void showMenu(View view){
+    private void requestStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+            return;
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            //If the user has denied the permission previously your code will come to this block
+            //Here you can explain why you need this permission
+            //Explain here why you need this permission
+        }
+        //And finally ask for the permission
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+    }
+
+    //This method will be called when the user will tap on allow or deny
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        //Checking the request code of our request
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+
+            //If permission is granted
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Displaying a toast
+                Toast.makeText(this, "Permission granted now you can read the storage", Toast.LENGTH_LONG).show();
+            } else {
+                //Displaying another toast if permission is not granted
+                Toast.makeText(this, "Oops you just denied the permission", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    public void uploadImage(View view){
+        requestStoragePermission();
+        imageView = view.findViewById(R.id.uploadedImage);
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Complete action using"), IMAGE_REQUEST_CODE);
+    }
+
+    public void showModifyUser(View view){
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = inflater.inflate(R.layout.user_profile, null);
+        popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+        ((TextView)popupView.findViewById(R.id.lastName)).setText(user.lastName);
+        ((TextView)popupView.findViewById(R.id.firstName)).setText(user.firstName);
+        ((TextView)popupView.findViewById(R.id.emailUser)).setText(user.email);
+        new DownloadImageTask((ImageView) popupView.findViewById(R.id.uploadedImage))
+                .execute(IMAGES_URL + "pp_" + user.id + ".jpg");
+
+        if(((ImageView) popupView.findViewById(R.id.uploadedImage)).getDrawable() == null){
+            ((ImageView) popupView.findViewById(R.id.uploadedImage)).setImageDrawable(getResources().getDrawable(R.drawable.example));
+        }
+
+        popupView.findViewById(R.id.uploadedImage).setVisibility(View.VISIBLE);
+
+
+        if(facebookLogin){
+            popupView.findViewById(R.id.emailUser).setVisibility(View.GONE);
+        }
+
+        popupView.findViewById(R.id.createItem).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String lastname = ((TextView)popupView.findViewById(R.id.lastName)).getText().toString();
+                String firstname = ((TextView)popupView.findViewById(R.id.firstName)).getText().toString();
+                String email = ((TextView)popupView.findViewById(R.id.emailUser)).getText().toString();
+                if(!lastname.equals("") && !firstname.equals("") && !email.equals("")){
+                    tryModifyUser(email, firstname, lastname, popupWindow);
+                }
+            }
+        });
+
+        popupView.findViewById(R.id.uploadImage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                uploadImage(popupView);
+            }
+        });
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new OnSwipeTouchListener(DashboardActivity.this) {
+            public void onSwipeBottom() {
+                popupWindow.dismiss();
+            }
+            public void onSwipeTop() {
+            }
+        });
+    }
+
+    public void uploadMultipart() {
+        //String caption = etCaption.getText().toString().trim();
+
+        //getting the actual path of the image
+        String path = getPath(filePath);
+
+        //Uploading code
+        try {
+            String uploadId = UUID.randomUUID().toString();
+
+            //Creating a multi part request
+            new MultipartUploadRequest(this, uploadId, ApiConfig.SAVE_FILE_URL)
+                    .addFileToUpload(path, "image") //Adding file
+                    .addParameter("caption", "pp_" + user.id + ".jpg")
+                    //.setNotificationConfig(new UploadNotificationConfig())
+                    .setMaxRetries(2)
+                    .startUpload(); //Starting the upload
+        } catch (Exception exc) {
+            Toast.makeText(this, exc.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public String getPath(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        String document_id = cursor.getString(0);
+        document_id = document_id.substring(document_id.lastIndexOf(":") + 1);
+        cursor.close();
+
+        cursor = getContentResolver().query(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                null, MediaStore.Images.Media._ID + " = ? ", new String[]{document_id}, null);
+        cursor.moveToFirst();
+        String path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+        cursor.close();
+
+        return path;
+    }
+
+    public void tryModifyUser(String email, String firstname, String lastname, PopupWindow popupWindow){
+        this.user.email = email;
+        this.user.firstName = firstname;
+        this.user.lastName = lastname;
+
+        popupWindow.dismiss();
+
+        new Thread(new Runnable() {
+            public void run() {
+                uploadMultipart();
+                UserApi userApi = new UserApi();
+                try {
+                    userApi.updateAttributes(user.id, user);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public void showMenu(final View view){
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View popupView = inflater.inflate(R.layout.menu_users, null);
         popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.left_in));
@@ -334,55 +541,21 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
 
+        popupView.findViewById(R.id.btnProfile).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+                showModifyUser(view);
+            }
+        });
+
         CategoryApi categoryApi = new CategoryApi();
 
         try {
             final List<Category> categoryList = categoryApi.findAll();
             final ListView categoriesListView = popupView.findViewById(R.id.listOfCategories);
-            CategoriesListAdapter adapter = new CategoriesListAdapter(this, R.layout.list_of_categories, categoryList);
+            CategoriesListAdapter adapter = new CategoriesListAdapter(this, R.layout.list_of_categories, categoryList, user);
             categoriesListView.setAdapter(adapter);
-
-            categoriesListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, final long id) {
-                    final Category category = categoryList.get(position);
-
-                    if(((CheckBox)categoriesListView.getChildAt(position)).isChecked()){
-                        Log.i("CATEGORIES", "creating");
-                        new Thread(new Runnable() {
-                            public void run() {
-                            UserApi userApi = new UserApi();
-                            try {
-                                userApi.addCategory(user.id, category.id);
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            }
-                        }).start();
-                    }else{
-                        Log.i("CATEGORIES", "deleting");
-                        new Thread(new Runnable() {
-                            public void run() {
-                            UserApi userApi = new UserApi();
-                            try {
-                                userApi.deleteCategory(user.id, category.id);
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            }
-                        }).start();
-                    }
-
-                }
-            });
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

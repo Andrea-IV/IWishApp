@@ -68,4 +68,10 @@
     <string name="logout">Logout</string>
     <string name="categories_title">Centers of interest</string>
     <string name="price_comparator">Price on different site</string>
+    <string name="profile_title">Your profile</string>
+    <string name="enter_firstname">Firstname</string>
+    <string name="enter_lastname">Lastname</string>
+    <string name="enter_email">Mail</string>
+    <string name="password_confirm">Type your password to confirm</string>
+    <string name="empty_fields">Some fields are empty</string>
 </resources>

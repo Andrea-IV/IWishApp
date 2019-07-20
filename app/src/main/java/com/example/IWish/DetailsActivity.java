@@ -73,28 +73,30 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.example.IWish.ApiConfig.IMAGES_URL;
+
 public class DetailsActivity extends AppCompatActivity {
 
-    public static final int PAYPAL_REQUEST_CODE = 7171;
-    public static final int IMAGE_REQUEST_CODE = 3;
-    public static final int STORAGE_PERMISSION_CODE = 123;
+    static final int PAYPAL_REQUEST_CODE = 7171;
+    static final int IMAGE_REQUEST_CODE = 3;
+    static final int STORAGE_PERMISSION_CODE = 123;
+    final static String DATE_FORMAT = "dd/MM/yyyy";
+    final String regExp = "[0-9]+([,.][0-9]{1,2})?";
 
-    private static PayPalConfiguration paypalConfig = new PayPalConfiguration()
+    static PayPalConfiguration paypalConfig = new PayPalConfiguration()
             .environment(PayPalConfiguration.ENVIRONMENT_SANDBOX)
             .clientId(ApiConfig.PAYPAL_CLIENT_ID);
 
-    private Wishlist wishlist;
-    private User user;
-    private Boolean owned;
-    private int positionSelected = -1;
-    final static String DATE_FORMAT = "dd/MM/yyyy";
-    private String amount;
-    private CallbackManager callbackManager;
-    final String regExp = "[0-9]+([,.][0-9]{1,2})?";
-    private Uri filePath;
-    private ImageView imageView;
-    private Bitmap bitmap;
-    private ProgressDialog mDialog;
+    Wishlist wishlist;
+    User user;
+    Boolean owned;
+    int positionSelected = -1;
+    String amount;
+    CallbackManager callbackManager;
+    Uri filePath;
+    ImageView imageView;
+    Bitmap bitmap;
+    ProgressDialog mDialog;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -289,6 +291,13 @@ public class DetailsActivity extends AppCompatActivity {
         ((TextView)popupView.findViewById(R.id.description)).setText(item.description);
         ((TextView)popupView.findViewById(R.id.price)).setText("Price : " + String.format("%.2f", item.amount) + " €");
 
+        new DownloadImageTask((ImageView) popupView.findViewById(R.id.imageView))
+                .execute(IMAGES_URL + "item_" + item.id + ".jpg");
+
+        if(((ImageView) popupView.findViewById(R.id.imageView)).getDrawable() == null){
+            ((ImageView) popupView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.default_image));
+        }
+
         if(item.link.isEmpty()){
             popupView.findViewById(R.id.link).setVisibility(View.GONE);
         }else{
@@ -401,6 +410,7 @@ public class DetailsActivity extends AppCompatActivity {
         // dismiss the popup window when touched
         popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
             public void onSwipeBottom() {
+                filePath = null;
                 popupWindow.dismiss();
             }
             public void onSwipeTop() {
@@ -412,6 +422,11 @@ public class DetailsActivity extends AppCompatActivity {
         ((EditText)popupView.findViewById(R.id.description)).setText(baseDescription);
         ((EditText)popupView.findViewById(R.id.amount)).setText(String.format("%.2f", baseAmount));
         ((EditText)popupView.findViewById(R.id.link)).setText(baselink);
+
+        ((ImageView) popupView.findViewById(R.id.uploadedImage)).setImageDrawable(getResources().getDrawable(R.drawable.default_image));
+
+        new DownloadImageTask((ImageView) popupView.findViewById(R.id.uploadedImage))
+                .execute(IMAGES_URL + "item_" + id + ".jpg");
 
         Button modifyButton = popupView.findViewById(R.id.createItem);
         modifyButton.setText(R.string.modify_item_button);
@@ -469,6 +484,13 @@ public class DetailsActivity extends AppCompatActivity {
             } else {
                 ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.link_empty);
             }
+            }
+        });
+        ImageView uploadImage = popupView.findViewById(R.id.uploadImage);
+        uploadImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                uploadImage(popupView);
             }
         });
     }
@@ -710,8 +732,7 @@ public class DetailsActivity extends AppCompatActivity {
         }
     }
 
-    public static boolean isDateValid(String date)
-    {
+    public static boolean isDateValid(String date){
         try {
             DateFormat df = new SimpleDateFormat(DATE_FORMAT);
             df.setLenient(false);
@@ -744,7 +765,6 @@ public class DetailsActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
     }
 
-    //This method will be called when the user will tap on allow or deny
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
@@ -762,11 +782,18 @@ public class DetailsActivity extends AppCompatActivity {
         }
     }
 
-    public void uploadMultipart() {
+    public void uploadMultipart(long id) {
         //String caption = etCaption.getText().toString().trim();
 
         //getting the actual path of the image
-        String path = getPath(filePath);
+        String path = "";
+
+        if(!filePath.toString().contains("amazon")){
+            path = getPath(filePath);
+        }else{
+            path = filePath.toString();
+        }
+
 
         //Uploading code
         try {
@@ -775,7 +802,7 @@ public class DetailsActivity extends AppCompatActivity {
             //Creating a multi part request
             new MultipartUploadRequest(this, uploadId, ApiConfig.SAVE_FILE_URL)
                     .addFileToUpload(path, "image") //Adding file
-                    //.addParameter("caption", caption) //Adding text parameter to the request
+                    .addParameter("caption", "item_" + id + ".jpg") //Adding text parameter to the request
                     //.setNotificationConfig(new UploadNotificationConfig())
                     .setMaxRetries(2)
                     .startUpload(); //Starting the upload
@@ -932,6 +959,7 @@ public class DetailsActivity extends AppCompatActivity {
         // dismiss the popup window when touched
         popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
             public void onSwipeBottom() {
+                filePath = null;
                 popupWindow.dismiss();
             }
             public void onSwipeTop() {
@@ -939,6 +967,8 @@ public class DetailsActivity extends AppCompatActivity {
         });
 
         ((TextView)popupView.findViewById(R.id.textView)).setText(R.string.create_item_name);
+        popupView.findViewById(R.id.uploadedImage).setVisibility(View.GONE);
+
         Button createButton = popupView.findViewById(R.id.createItem);
         createButton.setText(R.string.create_item_button);
         createButton.setOnClickListener(new View.OnClickListener() {
@@ -980,6 +1010,9 @@ public class DetailsActivity extends AppCompatActivity {
                         try {
                             Item item = amazonApi.getItemFromUrl(link);
                             if(item != null){
+                                if(!item.image.equals("")){
+                                    filePath = Uri.parse(item.image);
+                                }
                                 tryCreateProduct(item.name, ((EditText)popupView.findViewById(R.id.description)).getText().toString(), item.amount.toString(), link, popupWindow);
                             }else{
                                 ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.amazon_link_not_working);
@@ -1017,9 +1050,13 @@ public class DetailsActivity extends AppCompatActivity {
         item.position = 0;
         item.wishlist = this.wishlist.id;
         try {
-            //uploadMultipart();
-            wishlist.items.add(itemApi.create(item));
+            item = itemApi.create(item);
+            wishlist.items.add(item);
+            if(filePath != null){
+                uploadMultipart(item.id);
+            }
             loadItem();
+            filePath = null;
             popupWindow.dismiss();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -1043,8 +1080,12 @@ public class DetailsActivity extends AppCompatActivity {
                 item.position = 0;
                 item.wishlist = this.wishlist.id;
                 try {
+                    if(filePath != null){
+                        uploadMultipart(item.id);
+                    }
                     itemApi.updateAttributes(item.id, item);
                     loadItem();
+                    filePath = null;
                     popupWindow.dismiss();
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();

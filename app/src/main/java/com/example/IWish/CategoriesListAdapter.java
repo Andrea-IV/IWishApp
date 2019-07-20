@@ -14,15 +14,22 @@ import android.widget.TextView;
 import com.example.IWish.Model.Category;
 import com.example.IWish.Model.Donation;
 import com.example.IWish.Model.Item;
+import com.example.IWish.Model.User;
+import com.example.IWish.api.UserApi;
+
+import org.json.JSONException;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class CategoriesListAdapter extends ArrayAdapter<Category> {
     private Context context;
+    private User user;
 
-    public CategoriesListAdapter(Context context, int vg, List<Category> rowItemList){
+    public CategoriesListAdapter(Context context, int vg, List<Category> rowItemList, User user){
         super(context,vg, rowItemList);
         this.context = context;
+        this.user = user;
     }
 
     static class ViewHolder {
@@ -31,7 +38,7 @@ public class CategoriesListAdapter extends ArrayAdapter<Category> {
 
     public View getView(int position, View convertView, ViewGroup parent) {
         CategoriesListAdapter.ViewHolder holder = null;
-        Category category = getItem(position);
+        final Category category = getItem(position);
 
         LayoutInflater mInflater = (LayoutInflater) context
                 .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
@@ -40,11 +47,55 @@ public class CategoriesListAdapter extends ArrayAdapter<Category> {
             holder = new CategoriesListAdapter.ViewHolder();
             holder.checkBox = (CheckBox) convertView.findViewById(R.id.categoryCheck);
             convertView.setTag(holder);
+            for(Category userCategory: user.categories){
+                if(userCategory.id == category.id){
+                    holder.checkBox.setChecked(true);
+                }
+            }
         } else{
             holder = (CategoriesListAdapter.ViewHolder) convertView.getTag();
         }
 
         holder.checkBox.setText(category.name);
+
+        final CategoriesListAdapter.ViewHolder finalHolder = holder;
+
+        holder.checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(finalHolder.checkBox.isChecked()){
+                    new Thread(new Runnable() {
+                        public void run() {
+                            UserApi userApi = new UserApi();
+                            try {
+                                userApi.addCategory(user.id, category.id);
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
+                }else{
+                    new Thread(new Runnable() {
+                        public void run() {
+                            UserApi userApi = new UserApi();
+                            try {
+                                userApi.deleteCategory(user.id, category.id);
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
+                }
+            }
+        });
 
         return convertView;
     }

@@ -13,6 +13,8 @@ import com.example.IWish.Model.Item;
 
 import java.util.List;
 
+import static com.example.IWish.ApiConfig.IMAGES_URL;
+
 public class DetailsListAdapter extends ArrayAdapter<Item> {
     private Context context;
 
@@ -46,6 +48,13 @@ public class DetailsListAdapter extends ArrayAdapter<Item> {
 
         holder.titleView.setText(wishedItem.name);
         holder.idView.setText(String.valueOf(wishedItem.id));
+
+        new DownloadImageTask(holder.imageView)
+                .execute(IMAGES_URL + "item_" + wishedItem.id + ".jpg");
+
+        if(holder.imageView.getDrawable() == null){
+            holder.imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.default_image));
+        }
 
         return convertView;
     }

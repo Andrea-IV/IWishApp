@@ -75,7 +75,7 @@ public class Category extends Model {
 
     @Override
     public String toString() {
-        return "Category{" +
+        return "{" +
                 "name='" + name + '\'' +
                 ", fans=" + fans +
                 ", items=" + items +

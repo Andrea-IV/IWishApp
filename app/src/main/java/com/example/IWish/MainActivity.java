@@ -133,10 +133,6 @@ public class MainActivity extends AppCompatActivity {
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPref.edit();
-                editor.putString(getString(R.string.saved_facebook_token), loginResult.getAccessToken().toString());
-                editor.apply();
                 mDialog = new ProgressDialog(MainActivity.this);
                 mDialog.setMessage("Retrieving data...");
                 mDialog.show();

@@ -2,6 +2,7 @@ package com.example.IWish;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,8 @@ import android.widget.TextView;
 import com.example.IWish.Model.Wishlist;
 
 import java.util.List;
+
+import static com.example.IWish.ApiConfig.IMAGES_URL;
 
 public class DashboardListAdapter extends ArrayAdapter<RowWishList> {
     private Context context;
@@ -62,6 +65,13 @@ public class DashboardListAdapter extends ArrayAdapter<RowWishList> {
 
         holder.textView.setText(rowWishList.getTitle());
         holder.idView.setText(String.valueOf(rowWishList.getId()));
+
+        new DownloadImageTask(holder.imageView)
+                .execute(IMAGES_URL + "pp_" + rowWishList.getWishlist().owner + ".jpg");
+
+        if(holder.imageView.getDrawable() == null){
+            holder.imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.example));
+        }
 
         return convertView;
     }

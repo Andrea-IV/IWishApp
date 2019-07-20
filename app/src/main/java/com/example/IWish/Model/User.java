@@ -1,13 +1,24 @@
 package com.example.IWish.Model;
 
+import android.net.Uri;
 import android.util.Log;
+import android.view.View;
+
+import com.example.IWish.R;
+import com.example.IWish.api.WishlistApi;
+import com.example.IWish.http.HttpClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static com.example.IWish.ApiConfig.IMAGES_URL;
 
 public class User extends Model {
 
@@ -47,6 +58,7 @@ public class User extends Model {
         this.concernedWishlists = new ArrayList<>(other.concernedWishlists.size());
         for ( Wishlist wishlist : other.concernedWishlists )
             this.concernedWishlists.add(new Wishlist(wishlist));
+
     }
 
     public User(JSONObject json, boolean includeRelations) {
@@ -59,14 +71,6 @@ public class User extends Model {
             this.lastName = (String) (json.get("lastName"));
 
             if ( includeRelations ) {
-                /*JSONArray categoriesJson = (JSONArray) (json.get("categories"));
-                int nbCategories = categoriesJson.length();
-                this.categories = new ArrayList<>(nbCategories);
-                for (int i = 0; i < nbCategories; i++) {
-                    JSONObject categoryJson = (JSONObject) (categoriesJson.get(i));
-                    Category category = new Category(categoryJson, false);
-                    this.categories.add(category);
-                }*/
 
                 /*JSONArray managedPrizePoolsJson = (JSONArray) (json.get("managedPrizePools"));
                 int nbManagedPrizePools = managedPrizePoolsJson.length();
@@ -93,6 +97,15 @@ public class User extends Model {
                     JSONObject concernedWishlistJson = (JSONObject) (concernedWishlistsJson.get(i));
                     Wishlist concernedWishlist = new Wishlist(concernedWishlistJson, false);
                     this.concernedWishlists.add(concernedWishlist);
+                }
+
+                JSONArray categoriesJson = (JSONArray) (json.get("categories"));
+                int nbCategories = categoriesJson.length();
+                this.categories = new ArrayList<>(nbCategories);
+                for (int i = 0; i < nbCategories; i++) {
+                    JSONObject categoryJson = (JSONObject) (categoriesJson.get(i));
+                    Category category = new Category(categoryJson, false);
+                    this.categories.add(category);
                 }
             }
         }catch (JSONException e) {
@@ -149,7 +162,7 @@ public class User extends Model {
                 "\"email\":\"" + email + '\"' +
                 ", \"firstName\":\"" + firstName + '\"' +
                 ", \"lastName\":\"" + lastName + '\"' +
-                ", \"categories\":" + adaptToJson(categories) +
+                ", \"categories\": " + adaptToJson(categories) +
                 ", \"managedPrizePools\":" + adaptToJson(managedPrizePools) +
                 ", \"donations\":" + adaptToJson(donations) +
                 ", \"wishlists\":" + adaptToJson(wishlists) +

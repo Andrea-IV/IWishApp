@@ -27,9 +27,16 @@ public class AmazonApi {
             return null;
         }
 
+        String imageUrl = "";
+        Element image = document.getElementById("landingImage");
+        if(image != null){
+            imageUrl = image.absUrl("src");
+        }
+
         Item item = new Item();
         item.name = titleElement.text();
         item.amount = Double.parseDouble((getPriceFromString(priceElement.text())).replace(',','.'));
+        item.image = imageUrl;
         return item;
     }
 
