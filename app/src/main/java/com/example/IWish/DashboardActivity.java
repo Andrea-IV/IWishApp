@@ -70,6 +70,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static com.example.IWish.ApiConfig.IMAGES_URL;
+import static com.example.IWish.ApiConfig.INVITATION_URL;
 
 public class DashboardActivity extends AppCompatActivity {
     public static final int IMAGE_REQUEST_CODE = 3;
@@ -216,7 +217,7 @@ public class DashboardActivity extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 ShareLinkContent content = new ShareLinkContent.Builder()
-                                        .setContentUrl(Uri.parse("https://developers.facebook.com"))
+                                        .setContentUrl(Uri.parse(INVITATION_URL + ((TextView)swipedView.findViewById(R.id.wishlistId)).getText().toString()))
                                         .build();
                                 if(ShareDialog.canShow(ShareLinkContent.class)){
                                     ShareDialog shareDialog = new ShareDialog(DashboardActivity.this);

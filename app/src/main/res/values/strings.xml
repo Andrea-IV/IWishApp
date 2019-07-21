@@ -74,4 +74,7 @@
     <string name="enter_email">Mail</string>
     <string name="password_confirm">Type your password to confirm</string>
     <string name="empty_fields">Some fields are empty</string>
+    <string name="recomendation_title">Recomendation</string>
+    <string name="end_of_prizepool">The prizepool ended</string>
+    <string name="get_donation">Get donations</string>
 </resources>

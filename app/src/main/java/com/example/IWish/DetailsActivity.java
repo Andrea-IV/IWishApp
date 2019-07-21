@@ -33,12 +33,14 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.IWish.Model.Category;
 import com.example.IWish.Model.Donation;
 import com.example.IWish.Model.Item;
 import com.example.IWish.Model.PrizePool;
 import com.example.IWish.Model.User;
 import com.example.IWish.Model.Wishlist;
 import com.example.IWish.api.AmazonApi;
+import com.example.IWish.api.CategoryApi;
 import com.example.IWish.api.DonationApi;
 import com.example.IWish.api.ItemApi;
 import com.example.IWish.api.PrizePoolApi;
@@ -53,8 +55,10 @@ import com.paypal.android.sdk.payments.PaymentConfirmation;
 
 import net.gotev.uploadservice.MultipartUploadRequest;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -410,13 +414,13 @@ public class DetailsActivity extends AppCompatActivity {
         // dismiss the popup window when touched
         popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
             public void onSwipeBottom() {
-                filePath = null;
                 popupWindow.dismiss();
             }
             public void onSwipeTop() {
             }
         });
 
+        popupView.findViewById(R.id.recomendationImage).setVisibility(View.GONE);
         ((TextView)popupView.findViewById(R.id.textView)).setText(R.string.modify_item_title);
         ((EditText)popupView.findViewById(R.id.newName)).setText(baseName);
         ((EditText)popupView.findViewById(R.id.description)).setText(baseDescription);
@@ -424,6 +428,7 @@ public class DetailsActivity extends AppCompatActivity {
         ((EditText)popupView.findViewById(R.id.link)).setText(baselink);
 
         ((ImageView) popupView.findViewById(R.id.uploadedImage)).setImageDrawable(getResources().getDrawable(R.drawable.default_image));
+
 
         new DownloadImageTask((ImageView) popupView.findViewById(R.id.uploadedImage))
                 .execute(IMAGES_URL + "item_" + id + ".jpg");
@@ -655,6 +660,81 @@ public class DetailsActivity extends AppCompatActivity {
                 public void onSwipeTop() {
                 }
             });
+        }else if(!(new Date(wishlist.prizePool.endDate)).after(new Date()) && (wishlist.prizePool.manager != user.id || wishlist.prizePool.closed)){
+            view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+            // inflate the layout of the popup window
+            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            final View popupView = inflater.inflate(R.layout.no_prizepool, null);
+            popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+            // create the popup window
+            int width = LinearLayout.LayoutParams.MATCH_PARENT;
+            int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            boolean focusable = true; // lets taps outside the popup also dismiss it
+            final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+            popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+            ((TextView)popupView.findViewById(R.id.title)).setText(R.string.end_of_prizepool);
+            // dismiss the popup window when touched
+            popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+                public void onSwipeBottom() {
+                    popupWindow.dismiss();
+                }
+                public void onSwipeTop() {
+                }
+            });
+        }else if(!(new Date(wishlist.prizePool.endDate)).after(new Date()) && wishlist.prizePool.manager == user.id){
+            view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+            // inflate the layout of the popup window
+            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            final View popupView = inflater.inflate(R.layout.no_prizepool, null);
+            popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+            // create the popup window
+            int width = LinearLayout.LayoutParams.MATCH_PARENT;
+            int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            boolean focusable = true; // lets taps outside the popup also dismiss it
+            final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+            popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+            ((TextView)popupView.findViewById(R.id.title)).setText(R.string.end_of_prizepool);
+            popupView.findViewById(R.id.endLayout).setVisibility(View.VISIBLE);
+
+            popupView.findViewById(R.id.getDonation).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    PrizePoolApi prizePoolApi = new PrizePoolApi();
+                    try {
+                        JSONObject res = prizePoolApi.collectDonations(wishlist.id);
+                        if(res.get("status").toString().equals("200")){
+                            Toast.makeText(DetailsActivity.this, "Donation have been transferred", Toast.LENGTH_LONG).show();
+                            popupWindow.dismiss();
+                        }else{
+                            Toast.makeText(DetailsActivity.this, "Donation couldn't be transferred", Toast.LENGTH_LONG).show();
+                        }
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            });
+
+            // dismiss the popup window when touched
+            popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+                public void onSwipeBottom() {
+                    popupWindow.dismiss();
+                }
+                public void onSwipeTop() {
+                }
+            });
         }else{
             view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
             // inflate the layout of the popup window
@@ -679,7 +759,7 @@ public class DetailsActivity extends AppCompatActivity {
             int mMonth = calendar.get(Calendar.MONTH);
             int mDay = calendar.get(Calendar.DAY_OF_MONTH);
 
-            ((TextView)popupView.findViewById(R.id.endDateValue)).setText(mDay + "/" + mMonth + "/" + mYear);
+            ((TextView)popupView.findViewById(R.id.endDateValue)).setText(mDay + "/" + (mMonth + 1) + "/" + mYear);
 
             ImageView showButton = popupView.findViewById(R.id.showIcon);
             showButton.setOnClickListener(new View.OnClickListener() {
@@ -786,13 +866,7 @@ public class DetailsActivity extends AppCompatActivity {
         //String caption = etCaption.getText().toString().trim();
 
         //getting the actual path of the image
-        String path = "";
-
-        if(!filePath.toString().contains("amazon")){
-            path = getPath(filePath);
-        }else{
-            path = filePath.toString();
-        }
+        String  path = getPath(filePath);
 
 
         //Uploading code
@@ -959,7 +1033,6 @@ public class DetailsActivity extends AppCompatActivity {
         // dismiss the popup window when touched
         popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
             public void onSwipeBottom() {
-                filePath = null;
                 popupWindow.dismiss();
             }
             public void onSwipeTop() {
@@ -1010,9 +1083,6 @@ public class DetailsActivity extends AppCompatActivity {
                         try {
                             Item item = amazonApi.getItemFromUrl(link);
                             if(item != null){
-                                if(!item.image.equals("")){
-                                    filePath = Uri.parse(item.image);
-                                }
                                 tryCreateProduct(item.name, ((EditText)popupView.findViewById(R.id.description)).getText().toString(), item.amount.toString(), link, popupWindow);
                             }else{
                                 ((TextView) popupView.findViewById(R.id.errorText)).setText(R.string.amazon_link_not_working);
@@ -1031,11 +1101,80 @@ public class DetailsActivity extends AppCompatActivity {
             }
         });
 
+        popupView.findViewById(R.id.recomendationImage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+                showRecomendation(v);
+            }
+        });
+
         ImageView uploadImage = popupView.findViewById(R.id.uploadImage);
         uploadImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 uploadImage(popupView);
+            }
+        });
+    }
+
+    private void showRecomendation(View view){
+        view.startAnimation(AnimationUtils.loadAnimation(getBaseContext(), R.anim.button_anim));
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View popupView = inflater.inflate(R.layout.show_recommendation, null);
+        popupView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bottom_up));
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        popupWindow.showAtLocation(view, Gravity.BOTTOM, 0, 0);
+
+        HttpClient httpClient = new HttpClient();
+
+        try {
+            String param = "";
+            for(Category category: user.categories){
+                param += category.name + ";";
+            }
+            if(!param.equals("")){
+                param = param.substring(0, param.length()-1);
+
+                String result = httpClient.get(ApiConfig.RECOMMENDATION_URL + "?categories=" + param).get();
+                final JSONObject jsonObject;
+                jsonObject = new JSONObject(result);
+
+                ArrayList<String> listTitle = new ArrayList<String>();
+                ArrayList<String> listLink = new ArrayList<String>();
+                JSONArray jArray = (JSONArray)((JSONObject)jsonObject.get("result")).get("result");
+                if (jArray != null) {
+                    for (int i=0;i<jArray.length();i++){
+                        listTitle.add(((JSONObject)jArray.get(i)).get("title").toString());
+                        listLink.add(((JSONObject)jArray.get(i)).get("link").toString());
+                    }
+                }
+
+                final ListView listview = popupView.findViewById(R.id.listOfRecommendation);
+                RecommendationListAdapter adapter = new RecommendationListAdapter(this,R.layout.list_of_item, listTitle, listLink);
+                listview.setAdapter(adapter);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new OnSwipeTouchListener(DetailsActivity.this) {
+            public void onSwipeBottom() {
+                popupWindow.dismiss();
+            }
+            public void onSwipeTop() {
             }
         });
     }
@@ -1054,9 +1193,9 @@ public class DetailsActivity extends AppCompatActivity {
             wishlist.items.add(item);
             if(filePath != null){
                 uploadMultipart(item.id);
+                filePath = null;
             }
             loadItem();
-            filePath = null;
             popupWindow.dismiss();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -1082,11 +1221,12 @@ public class DetailsActivity extends AppCompatActivity {
                 try {
                     if(filePath != null){
                         uploadMultipart(item.id);
+                        filePath = null;
                     }
                     itemApi.updateAttributes(item.id, item);
                     loadItem();
-                    filePath = null;
                     popupWindow.dismiss();
+                    Thread.sleep(5000);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {

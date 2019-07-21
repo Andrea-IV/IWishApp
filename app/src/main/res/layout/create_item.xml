@@ -38,6 +38,18 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/picture" />
 
+        <ImageView
+            android:id="@+id/recomendationImage"
+            android:layout_width="70dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/return_bg"
+            app:layout_constraintEnd_toStartOf="@+id/uploadImage"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/lamp" />
+
         <TextView
             android:id="@+id/errorText"
             android:layout_width="wrap_content"
