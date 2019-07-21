@@ -707,7 +707,9 @@ public class DetailsActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     PrizePoolApi prizePoolApi = new PrizePoolApi();
                     try {
-                        JSONObject res = prizePoolApi.collectDonations(wishlist.id);
+                        long prizePoolId = wishlist.prizePoolId != null ? wishlist.prizePoolId : wishlist.prizePool.id;
+                        Log.i("TAGTAG","prizePoolId="+prizePoolId);
+                        JSONObject res = prizePoolApi.collectDonations(prizePoolId);
                         if(res.get("status").toString().equals("200")){
                             Toast.makeText(DetailsActivity.this, "Donation have been transferred", Toast.LENGTH_LONG).show();
                             popupWindow.dismiss();
@@ -886,6 +888,7 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     public String getPath(Uri uri) {
+        Log.i("TAGTAG","uri"+uri);
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         cursor.moveToFirst();
         String document_id = cursor.getString(0);

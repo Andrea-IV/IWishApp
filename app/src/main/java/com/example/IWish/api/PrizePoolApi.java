@@ -24,7 +24,7 @@ public class PrizePoolApi extends BaseApi<PrizePool> {
 
     public JSONObject collectDonations(long id) throws UnsupportedEncodingException, JSONException, ExecutionException, InterruptedException {
         Map<String, String> data = new HashMap<>();
-        data.put("wishlistId", String.valueOf(id));
+        data.put("prizePoolId", String.valueOf(id));
 
         String result = this.http.post(ApiConfig.RECEIVE_DONATIONS_URL, data).get();
 
